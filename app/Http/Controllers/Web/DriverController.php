@@ -1,0 +1,255 @@
+<?php
+
+namespace App\Http\Controllers\Web;
+
+use App\Http\Controllers\Controller;
+// ganti 1
+
+use App\Models\Driver;
+use App\Models\DriverDetail;
+use Illuminate\Http\Request;
+use DataTables;
+use Illuminate\Support\Facades\DB;
+
+
+
+include_once base_path() . "/vendor/simitgroup/phpjasperxml/version/1.1/PHPJasperXML.inc.php";
+
+use PHPJasperXML;
+
+
+
+
+// ganti 2
+class DriverController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+
+        // ganti 3
+        return view('driver.index');
+    }
+
+    // ganti 4
+
+    public function getDriver(Request $request)
+    {
+        // ganti 5
+
+        if ($request->session()->has('periode')) {
+            $periode = $request->session()->get('periode')['bulan'] . '/' . $request->session()->get('periode')['tahun'];
+        } else {
+            $periode = '';
+        }
+
+
+
+        $driver = DB::table('drivers')->select('*')->get();
+
+
+
+        return Datatables::of($driver)
+            ->addIndexColumn()
+            ->editColumn('license_number', function ($row) {
+                preg_match('/^([A-Za-z]+)(\d+)([A-Za-z]+)$/', $row->license_number, $matches);
+
+                if ($matches) {
+                    $huruf_depan = $matches[1];  // L
+                    $angka_tengah = $matches[2]; // 1213
+                    $huruf_belakang = $matches[3]; // JKL
+
+                    return $huruf_depan . " " . $angka_tengah . " " . $huruf_belakang;
+                    // Output: L 1213 JKL
+                } else {
+                    return $row->license_number;
+                }
+            })
+            ->editColumn('status', function ($row) {
+                return $row->status == 1 ? 'Aktif' : 'Tidak Aktif';
+            })
+            ->editColumn('manager', function ($row) {
+                return $row->manager == 1 ? '<i class="fas fa-check"></i>' : '';
+            })
+            ->addColumn('action', function ($row) {
+
+                $btnPrivilege = '<a class="dropdown-item" href="driver/edit/' . $row->driver_id . '">
+                        <i class="fas fa-pen text-primary"></i>&nbsp&nbsp;&nbsp;; Edit
+                    </a>
+                    <hr>
+                    <a class="dropdown-item text-danger" onclick="return confirm(&quot;Apakah anda yakin ingin hapus?&quot;)" href="driver/delete/' . $row->driver_id . '">
+                        <i class="fas fa-trash-alt"></i>&nbsp; Hapus
+                    </a>';
+
+                $actionBtn =
+                    '
+                    <div class="dropdown show" style="text-align: center">
+                        <a class="btn btn-secondary dropdown-toggle btn-sm" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-bars"></i>
+                        </a>
+
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                            
+
+                            ' . $btnPrivilege . '
+                        </div>
+                    </div>
+                    ';
+
+                return $actionBtn;
+            })
+            ->rawColumns(['action', 'manager'])
+            ->make(true);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('driver.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string|unique:users,username',
+            'name' => 'required|string|max:100',
+            'address' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|unique:users,email',
+            'licence_number' => 'required|string|max:20',
+            'password' => 'required|confirmed|min:6',
+            'status' => 'required|in:0,1',
+        ]);
+
+        try {
+            Driver::create([
+                'username' => $request->username,
+                'driver_name' => $request->name,
+                'address' => $request->address,
+                'phone' => $request->phone,
+                'email' => $request->email,
+                'license_number' => $request->licence_number,
+                'password' => MD5($request->password),
+                'status' => $request->status,
+            ]);
+
+            return redirect()->back()->with('success', 'Driver berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+        }
+    }
+
+
+
+
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Master\Rute  $rute
+     * @return \Illuminate\Http\Response
+     */
+
+    // ganti 12
+
+    public function resetPassword($username)
+    {
+        $driver = Driver::where('username', $username)->firstOrFail();
+        $driver->password = MD5('drivertiara'); // default password
+        $driver->save();
+
+        return redirect()->back()->with('success', 'Password berhasil direset ke drivertiara.');
+    }
+
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\Master\Rute  $rute
+     * @return \Illuminate\Http\Response
+     */
+
+    // ganti 15
+
+    public function edit(Driver $driver)
+    {
+        return view('driver.edit', ['driver' => $driver]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Master\Rute  $rute
+     * @return \Illuminate\Http\Response
+     */
+
+    // ganti 18
+
+
+
+    public function update(Request $request, $username)
+    {
+        $request->validate([
+            'name'            => 'required|string|max:255',
+            'address'         => 'required|string|max:255',
+            'phone'           => 'required|string|max:20',
+            'email'           => 'required|email|max:255',
+            'licence_number'  => 'required|string|max:20',
+            'status'          => 'required|in:0,1',
+        ]);
+
+        $driver = Driver::where('username', $username)->first();
+
+        if (!$driver) {
+            return redirect()->back()->with('error', 'Data driver tidak ditemukan.');
+        }
+
+        $driver->driver_name           = $request->name;
+        $driver->address        = $request->address;
+        $driver->phone          = $request->phone;
+        $driver->email          = $request->email;
+        $driver->license_number = $request->licence_number;
+        $driver->status         = $request->status;
+
+        try {
+            $driver->save();
+            return redirect()->back()->with('success', 'Data driver berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memperbarui data driver: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\Master\Rute  $rute
+     * @return \Illuminate\Http\Response
+     */
+
+    // ganti 22
+
+    public function destroy($username)
+    {
+        $driver = Driver::where('driver_id', $username)->firstOrFail();
+        $driver->delete();
+
+        return redirect()->back()->with('success', 'Driver berhasil dihapus.');
+    }
+}

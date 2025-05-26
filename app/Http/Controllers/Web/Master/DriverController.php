@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Master;
 
 use App\Http\Controllers\Controller;
 // ganti 1
@@ -32,19 +32,28 @@ class DriverController extends Controller
     {
 
         // ganti 3
-        return view('driver.index');
+        return view('master.driver.index');
     }
 
     // ganti 4
 
     public function getDriver(Request $request)
     {
-        // ganti 5
+        if (!$request->has('draw')) {
+            $columns = [
+                ['data' => 'DT_RowIndex', 'title' => 'No.', 'orderable' => false, 'searchable' => false, 'className' => 'dt-center', 'width' => '20px'],
+                ['data' => 'username', 'title' => 'Username', 'width' => '100px'],
+                ['data' => 'driver_name', 'title' => 'Nama Driver', 'width' => '150px'],
+                ['data' => 'address', 'title' => 'Alamat', 'width' => '200px'],
+                ['data' => 'phone', 'title' => 'Nomor Telepon', 'className' => 'dt-center', 'width' => '100px'],
+                ['data' => 'email', 'title' => 'Email', 'width' => '100px'],
+                ['data' => 'license_number', 'title' => 'Plat Nomor', 'className' => 'dt-center', 'width' => '80px'],
+                ['data' => 'status', 'title' => 'Status', 'width' => '50px', 'className' => 'dt-center'],
+                ['data' => 'manager', 'title' => 'Manager', 'width' => '50px', 'className' => 'dt-center'],
+                ['data' => 'action', 'title' => 'Action', 'orderable' => false, 'searchable' => false, 'className' => 'dt-center', 'width' => '40px'],
+            ];
 
-        if ($request->session()->has('periode')) {
-            $periode = $request->session()->get('periode')['bulan'] . '/' . $request->session()->get('periode')['tahun'];
-        } else {
-            $periode = '';
+            return response()->json(['columns' => $columns]);
         }
 
 
@@ -77,11 +86,11 @@ class DriverController extends Controller
             })
             ->addColumn('action', function ($row) {
 
-                $btnPrivilege = '<a class="dropdown-item" href="driver/edit/' . $row->driver_id . '">
+                $btnPrivilege = '<a class="dropdown-item" href="' . url('master/driver/edit/' . $row->driver_id) . '">
                         <i class="fas fa-pen text-primary"></i>&nbsp&nbsp;&nbsp;; Edit
                     </a>
                     <hr>
-                    <a class="dropdown-item text-danger" onclick="return confirm(&quot;Apakah anda yakin ingin hapus?&quot;)" href="driver/delete/' . $row->driver_id . '">
+                    <a class="dropdown-item text-danger" onclick="return confirm(&quot;Apakah anda yakin ingin hapus?&quot;)" href="' . url('master/driver/delete/' . $row->driver_id) . '">
                         <i class="fas fa-trash-alt"></i>&nbsp; Hapus
                     </a>';
 
@@ -113,7 +122,20 @@ class DriverController extends Controller
      */
     public function create()
     {
-        return view('driver.create');
+        $form = [
+            ['label' => 'Username', 'value' => 'username', 'type' => 'string'],
+            ['label' => 'Nama Driver', 'value' => 'name', 'type' => 'string'],
+            ['label' => 'Alamat', 'value' => 'address', 'type' => 'string'],
+            ['label' => 'Nomor Telepon', 'value' => 'phone', 'type' => 'number'],
+            ['label' => 'Email', 'value' => 'email', 'type' => 'string'],
+            ['label' => 'Plat Nomor', 'value' => 'license_number', 'type' => 'string'],
+            ['label' => 'Password', 'value' => 'password', 'type' => 'password'],
+            ['label' => 'Konfirmasi Password', 'value' => 'password_confirmation', 'type' => 'password'],
+            ['label' => 'Status', 'value' => 'status', 'type' => 'selection', 'option' => [['value' => 1, 'label' => 'Aktif'], ['value' => 0, 'label' => 'Tidak Aktif']]],
+
+        ];
+
+        return view('master.driver.create', ['forms' => $form]);
     }
 
     /**
@@ -132,11 +154,10 @@ class DriverController extends Controller
             'address' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'email' => 'required|email|unique:users,email',
-            'licence_number' => 'required|string|max:20',
+            'license_number' => 'required|string|max:20',
             'password' => 'required|confirmed|min:6',
             'status' => 'required|in:0,1',
         ]);
-
         try {
             Driver::create([
                 'username' => $request->username,
@@ -144,7 +165,7 @@ class DriverController extends Controller
                 'address' => $request->address,
                 'phone' => $request->phone,
                 'email' => $request->email,
-                'license_number' => $request->licence_number,
+                'license_number' => $request->license_number,
                 'password' => MD5($request->password),
                 'status' => $request->status,
             ]);
@@ -168,9 +189,9 @@ class DriverController extends Controller
 
     // ganti 12
 
-    public function resetPassword($username)
+    public function resetPassword($id)
     {
-        $driver = Driver::where('username', $username)->firstOrFail();
+        $driver = Driver::where('driver_id', $id)->firstOrFail();
         $driver->password = MD5('drivertiara'); // default password
         $driver->save();
 
@@ -187,9 +208,20 @@ class DriverController extends Controller
 
     // ganti 15
 
-    public function edit(Driver $driver)
+    public function edit(Driver $id)
     {
-        return view('driver.edit', ['driver' => $driver]);
+        $form = [
+            ['label' => 'Username', 'value' => 'username', 'type' => 'string', 'readonly' => true],
+            ['label' => 'Nama Driver', 'value' => 'driver_name', 'type' => 'string'],
+            ['label' => 'Alamat', 'value' => 'address', 'type' => 'string'],
+            ['label' => 'Nomor Telepon', 'value' => 'phone', 'type' => 'number'],
+            ['label' => 'Email', 'value' => 'email', 'type' => 'string'],
+            ['label' => 'Plat Nomor', 'value' => 'license_number', 'type' => 'string'],
+            ['label' => 'Status', 'value' => 'status', 'type' => 'selection', 'option' => [['value' => 1, 'label' => 'Aktif'], ['value' => 0, 'label' => 'Tidak Aktif']]],
+
+        ];
+        $id['primaryKey'] = $id['driver_id'];
+        return view('master.driver.edit', ['data' => $id, 'forms' => $form]);
     }
 
     /**
@@ -204,28 +236,29 @@ class DriverController extends Controller
 
 
 
-    public function update(Request $request, $username)
+    public function update(Request $request)
     {
         $request->validate([
-            'name'            => 'required|string|max:255',
+            'username'            => 'required|string|max:255',
+            'driver_name'            => 'required|string|max:255',
             'address'         => 'required|string|max:255',
             'phone'           => 'required|string|max:20',
             'email'           => 'required|email|max:255',
-            'licence_number'  => 'required|string|max:20',
+            'license_number'  => 'required|string|max:20',
             'status'          => 'required|in:0,1',
         ]);
 
-        $driver = Driver::where('username', $username)->first();
+        $driver = Driver::where('username', $request->username)->first();
 
         if (!$driver) {
             return redirect()->back()->with('error', 'Data driver tidak ditemukan.');
         }
 
-        $driver->driver_name           = $request->name;
+        $driver->driver_name           = $request->driver_name;
         $driver->address        = $request->address;
         $driver->phone          = $request->phone;
         $driver->email          = $request->email;
-        $driver->license_number = $request->licence_number;
+        $driver->license_number = $request->license_number;
         $driver->status         = $request->status;
 
         try {

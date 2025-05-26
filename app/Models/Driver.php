@@ -17,12 +17,17 @@ class Driver extends Model
     protected $fillable =
     [
         "username",
+        "driver_id",
         "driver_name",
         "address",
         "phone",
         "license_number",
         "email",
+        'password',
         "status",
         "manager",
+    ];
+    protected $hidden = [
+        'password',
     ];
 }

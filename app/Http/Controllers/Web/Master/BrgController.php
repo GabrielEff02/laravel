@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Master;
 
 use App\Http\Controllers\Controller;
 // ganti 1
@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\DB;
 
 include_once base_path() . "/vendor/simitgroup/phpjasperxml/version/1.1/PHPJasperXML.inc.php";
 
-use PHPJasperXML;
 
 
 
@@ -32,89 +31,85 @@ class BrgController extends Controller
     {
 
         // ganti 3
-        return view('brg.index');
+        return view('master.brg.index');
     }
 
     // ganti 4
 
     public function getBrg(Request $request)
     {
-        // ganti 5
+        // Cek apakah ini request DataTable (pakai parameter draw)
+        if (!$request->has('draw')) {
+            $columns = [
+                ['data' => 'DT_RowIndex', 'title' => 'No.', 'orderable' => false, 'searchable' => false, 'width' => '20px', 'className' => 'dt-center'],
+                ['data' => 'nama', 'title' => 'Nama Barang', 'width' => '150px'],
+                ['data' => 'category_name', 'title' => 'Kategori', 'searchable' => false, 'width' => '60px'],
+                ['data' => 'total_produk', 'title' => 'Total Produk', 'searchable' => false, 'width' => '80px', 'className' => 'dt-center'],
+                ['data' => 'harga', 'title' => 'Harga', 'width' => '40px', 'className' => 'dt-right'],
+                ['data' => 'satuan', 'title' => 'Satuan', 'width' => '45px'],
+                ['data' => 'deskripsi', 'title' => 'Deskripsi', 'width' => '800px'],
+                ['data' => 'url', 'title' => 'Url', 'width' => '200px'],
+                ['data' => 'action', 'title' => 'Action', 'orderable' => false, 'searchable' => false, 'width' => '40px', 'className' => 'dt-center'],
+            ];
 
-        if ($request->session()->has('periode')) {
-            $periode = $request->session()->get('periode')['bulan'] . '/' . $request->session()->get('periode')['tahun'];
-        } else {
-            $periode = '';
+            return response()->json(['columns' => $columns]);
         }
 
-
-
-        $brg = DB::table('brg as b')
+        // Kalau ini request datatable (ada draw), baru ambil data
+        $id = DB::table('brg as b')
             ->join('brgd as bd', 'b.brg_id', '=', 'bd.brg_id')
             ->join('categories as c', 'b.category_id', '=', 'c.category_id')
             ->select(
                 'b.brg_id',
-                'b.brg_name',
-                'b.price',
-                'b.per',
-                'b.brg_deskripsi',
+                'b.nama',
+                'b.harga',
+                'b.satuan',
+                'b.deskripsi',
                 'b.url',
                 'c.category_name',
                 DB::raw('SUM(bd.quantity) as total_produk')
             )
             ->groupBy(
                 'b.brg_id',
-                'b.brg_name',
-                'b.price',
-                'b.per',
-                'b.brg_deskripsi',
+                'b.nama',
+                'b.harga',
+                'b.satuan',
+                'b.deskripsi',
                 'b.url',
                 'c.category_name'
-            )
-            ->get();
+            );
 
-
-
-        return Datatables::of($brg)
+        return Datatables::of($id)
             ->addIndexColumn()
-            ->editColumn('brg_deskripsi', function ($row) {
-                return $row->brg_deskripsi ?: '<span class="text-muted">-</span>';
+            ->editColumn('deskripsi', function ($row) {
+                return $row->deskripsi ?: '<span class="text-muted">-</span>';
             })
-
             ->addColumn('action', function ($row) {
-
-                $btnPrivilege = '								
-    <a class="dropdown-item" href="brg/edit/' . $row->brg_id . '">
-        <i class="fas fa-pen text-primary"></i>&nbsp&nbsp;&nbsp;; Edit
+                $btnPrivilege = '
+    <a class="dropdown-item" href="' . url('master/brg/edit/' . $row->brg_id) . '">
+        <i class="fas fa-pen text-primary"></i>&nbsp;&nbsp;&nbsp; Edit
     </a>
-    <a class="dropdown-item" href="brg/show/' . $row->brg_id . '">
+    <a class="dropdown-item" href="' . url('master/brg/show/' . $row->brg_id) . '">
         <i class="fas fa-boxes text-success"></i>&nbsp;&nbsp;&nbsp; Edit Stok
     </a>
     <hr>
-    <a class="dropdown-item text-danger" onclick="return confirm(&quot;Apakah anda yakin ingin hapus?&quot;)" href="brg/delete/' . $row->brg_id . '">
+    <a class="dropdown-item text-danger" onclick="return confirm(\'Apakah anda yakin ingin hapus?\')" href="' . url('master/brg/delete/' . $row->brg_id) . '">
         <i class="fas fa-trash-alt"></i>&nbsp; Hapus
     </a>';
 
-                $actionBtn =
-                    '
-                    <div class="dropdown show" style="text-align: center">
-                        <a class="btn btn-secondary dropdown-toggle btn-sm" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-bars"></i>
-                        </a>
 
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                            
-
-                            ' . $btnPrivilege . '
-                        </div>
-                    </div>
-                    ';
-
-                return $actionBtn;
+                return '
+                <div class="dropdown show" style="text-align: center">
+                    <a class="btn btn-secondary dropdown-toggle btn-sm" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-bars"></i>
+                    </a>
+                    <div class="dropdown-menu">' . $btnPrivilege . '</div>
+                </div>';
             })
             ->rawColumns(['action'])
             ->make(true);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -124,14 +119,15 @@ class BrgController extends Controller
     public function create()
     {
 
+
         $categories = DB::table('categories')
-            ->select('category_id', 'category_name')
+            ->select('category_id AS value', 'category_name AS label')
             ->get()
             ->map(function ($item) {
-                $item->category_name = ucwords(strtolower(preg_replace_callback(
+                $item->label = ucwords(strtolower(preg_replace_callback(
                     '/[^\s\-&]+/',
                     fn($matches) => ucfirst($matches[0]),
-                    $item->category_name
+                    $item->label
                 )));
                 return $item;
             });
@@ -148,7 +144,26 @@ class BrgController extends Controller
                 return $item;
             });
 
-        return view('brg.create', compact('categories', 'listCabang'));
+        $satuan = [
+            ['value' => "buah", 'label' => 'Buah'],
+            ['value' => "ons", 'label' => 'Ons'],
+            ['value' => "kg", 'label' => 'KG'],
+            ['value' => "ikat", 'label' => 'Ikat'],
+            ['value' => "pack", 'label' => 'Pack'],
+            ['value' => "pcs", 'label' => 'Pcs'],
+            ['value' => "box", 'label' => 'Box'],
+            ['value' => "roll", 'label' => 'Roll']
+        ];
+        $form = [
+            ['label' => 'Nama Barang', 'value' => 'nama', 'type' => 'string'],
+            ['label' => 'Harga Barang Rp.', 'value' => 'harga', 'type' => 'number'],
+            ['label' => 'Kategori Barang', 'value' => 'category_id', 'type' => 'selection', 'option' => $categories],
+            ['label' => 'Satuan', 'value' => 'satuan', 'type' => 'selection', 'option' => $satuan],
+            ['label' => 'Deskripsi Barang', 'value' => 'deskripsi', 'type' => 'string'],
+            ['label' => 'Gambar Produk', 'value' => 'url', 'type' => 'image', 'path' => 'img/gambar_produk/'],
+        ];
+        $data = ['forms' => $form, 'listCabang' => $listCabang];
+        return view('master.brg.create', $data);
     }
 
     /**
@@ -162,11 +177,11 @@ class BrgController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'brg_name' => 'required|string',
-            'price' => 'required|string',
+            'nama' => 'required|string',
+            'harga' => 'required|string',
             'category_id' => 'required|exists:categories,category_id',
-            'per' => 'required|string',
-            'brg_deskripsi' => 'nullable|string',
+            'satuan' => 'required|string',
+            'deskripsi' => 'nullable|string',
             'compan_code' => 'required|array',
             'jumlah' => 'required|array',
         ]);
@@ -174,8 +189,8 @@ class BrgController extends Controller
         try {
             DB::beginTransaction();
 
-            $brg_name = ucwords(strtolower($validated['brg_name']));
-            $price = str_replace('.', '', $validated['price']);
+            $nama = ucwords(strtolower($validated['nama']));
+            $harga = str_replace('.', '', $validated['harga']);
 
             $category = DB::table('categories')
                 ->where('category_id', $validated['category_id'])
@@ -187,28 +202,28 @@ class BrgController extends Controller
 
             // Format nama folder & file
             $cleanCategory = str_replace(' ', '_', strtolower($category->category_name));
-            $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($validated['brg_name']));
+            $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($validated['nama']));
 
-            $file = $request->file('imageUpload');
+            $file = $request->file('url');
             $extension = $file->getClientOriginalExtension();
 
             // Simpan file ke public storage
             $file->storeAs('public/img/gambar_produk/' . $cleanCategory, $cleanProduct . '.' . $extension);
             // Simpan ke database dengan path relatif
-            $brg = new Brg();
-            $brg->brg_name = $brg_name;
-            $brg->price = $price;
-            $brg->category_id = $validated['category_id'];
-            $brg->per = $validated['per'];
-            $brg->brg_deskripsi = $validated['brg_deskripsi'] ?? null;
-            $brg->url =  $cleanCategory . '/' . $cleanProduct . '.' . $extension;
-            $brg->save();
+            $id = new Brg();
+            $id->nama = $nama;
+            $id->harga = $harga;
+            $id->category_id = $validated['category_id'];
+            $id->satuan = $validated['satuan'];
+            $id->deskripsi = $validated['deskripsi'] ?? null;
+            $id->url =  $cleanCategory . '/' . $cleanProduct . '.' . $extension;
+            $id->save();
             $file->move(public_path('img/gambar_produk/' . $cleanCategory), $cleanProduct . '.' . $extension);
             foreach ($validated['compan_code'] as $index => $compan_code) {
                 $jumlah = $validated['jumlah'][$index];
                 if (!empty($compan_code) && !empty($jumlah)) {
                     $detail = new BrgDetail();
-                    $detail->brg_id = $brg->brg_id;
+                    $detail->brg_id = $id->brg_id;
                     $detail->compan_code = $compan_code;
                     $detail->quantity = $jumlah;
                     $detail->save();
@@ -237,25 +252,25 @@ class BrgController extends Controller
 
     // ganti 12
 
-    public function show(Brg $brg)
+    public function show(Brg $id)
     {
 
-        $brg_id = $brg->brg_id;
-        $brgDetail = DB::table('brgd')->where('brg_id', $brg_id)->get();
+        $id_id = $id->brg_id;
+        $idDetail = DB::table('brgd')->where('brg_id', $id_id)->get();
         $compan = DB::table('compan')->select('name', 'compan_code')->get();
         $categories = DB::table('categories')
-            ->where('category_id', $brg->category_id)
+            ->where('category_id', $id->category_id)
             ->value('category_name');
 
-        // Tambahkan properti baru ke objek $brg
-        $brg->category_name = $categories;
+        // Tambahkan properti baru ke objek $id
+        $id->category_name = $categories;
         $data = [
-            'header'        => $brg,
-            'detail'        => $brgDetail,
+            'header'        => $id,
+            'detail'        => $idDetail,
             'company'        => $compan,
         ];
 
-        return view('brg.show', $data);
+        return view('master.brg.show', $data);
     }
 
     /**
@@ -267,38 +282,45 @@ class BrgController extends Controller
 
     // ganti 15
 
-    public function edit(Brg $brg)
+    public function edit(Brg $id)
     {
-
         $categories = DB::table('categories')
-            ->select('category_id', 'category_name')
+            ->select('category_id AS value', 'category_name AS label')
             ->get()
             ->map(function ($item) {
-                $item->category_name = ucwords(strtolower(preg_replace_callback(
+                $item->label = ucwords(strtolower(preg_replace_callback(
                     '/[^\s\-&]+/',
                     fn($matches) => ucfirst($matches[0]),
-                    $item->category_name
+                    $item->label
                 )));
                 return $item;
             });
 
-        $listCabang = DB::table('compan')
-            ->select('compan_code', 'name')
-            ->get()
-            ->map(function ($item) {
-                $item->name = ucwords(strtolower(preg_replace_callback(
-                    '/[^\s\-&]+/',
-                    fn($matches) => ucfirst($matches[0]),
-                    $item->name
-                )));
-                return $item;
-            });
-        $data = [
-            'brg'        => $brg,
-            'listCabang'        => $listCabang,
-            'categories'        => $categories,
+        $satuan = [
+            ['value' => "buah", 'label' => 'Buah'],
+            ['value' => "ons", 'label' => 'Ons'],
+            ['value' => "kg", 'label' => 'KG'],
+            ['value' => "ikat", 'label' => 'Ikat'],
+            ['value' => "pack", 'label' => 'Pack'],
+            ['value' => "pcs", 'label' => 'Pcs'],
+            ['value' => "box", 'label' => 'Box'],
+            ['value' => "roll", 'label' => 'Roll']
         ];
-        return view('brg.edit', $data);
+        $form = [
+            ['label' => 'Nama Barang', 'value' => 'nama', 'type' => 'string'],
+            ['label' => 'Harga Barang Rp.', 'value' => 'harga', 'type' => 'number'],
+            ['label' => 'Kategori Barang', 'value' => 'category_id', 'type' => 'selection', 'option' => $categories],
+            ['label' => 'Satuan', 'value' => 'satuan', 'type' => 'selection', 'option' => $satuan],
+            ['label' => 'Deskripsi Barang', 'value' => 'deskripsi', 'type' => 'string'],
+            ['label' => 'Gambar Produk', 'value' => 'url', 'type' => 'image', 'path' => 'img/gambar_produk/'],
+        ];
+        $id['primaryKey'] = $id['brg_id'];
+
+        $data = [
+            'data'        => $id,
+            'forms'        => $form,
+        ];
+        return view('master.brg.edit', $data);
     }
 
     /**
@@ -313,21 +335,21 @@ class BrgController extends Controller
 
 
 
-    public function update(Request $request, Brg $brg)
+    public function update(Request $request, Brg $id)
     {
         $request->validate([
-            'brg_name' => 'required|string|max:255',
-            'price' => 'required|string',
+            'nama' => 'required|string|max:255',
+            'harga' => 'required|string',
             'category_id' => 'required|exists:categories,category_id',
-            'per' => 'required|string',
-            'brg_deskripsi' => 'nullable|string',
-            'imageUpload' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'satuan' => 'required|string',
+            'deskripsi' => 'nullable|string',
+            'url' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         DB::beginTransaction();
 
         try {
-            $harga = (int) str_replace('.', '', $request->price);
+            $harga = (int) str_replace('.', '', $request->harga);
 
             // Ambil nama kategori
             $category = DB::table('categories')->where('category_id', $request->category_id)->first();
@@ -337,15 +359,15 @@ class BrgController extends Controller
 
             // Format nama folder & nama file
             $cleanCategory = str_replace(' ', '_', strtolower($category->category_name));
-            $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($request->brg_name));
+            $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($request->nama));
             $path = public_path('img/gambar_produk/' . $cleanCategory);
-            if ($request->hasFile('imageUpload')) {
+            if ($request->hasFile('url')) {
                 // Hapus gambar lama jika ada
-                if ($brg->url && file_exists(public_path('img/gambar_produk/' . $brg->url))) {
-                    unlink(public_path('img/gambar_produk/' . $brg->url));
+                if ($id->url && file_exists(public_path('img/gambar_produk/' . $id->url))) {
+                    unlink(public_path('img/gambar_produk/' . $id->url));
                 }
 
-                $file = $request->file('imageUpload');
+                $file = $request->file('url');
                 $extension = $file->getClientOriginalExtension();
                 $fileName = $cleanProduct . '_' . time() . '.' . $extension;
 
@@ -353,16 +375,16 @@ class BrgController extends Controller
                 $file->move($path, $fileName);
 
                 // Simpan path relatif ke database
-                $brg->url = $cleanCategory . '/' . $fileName;
+                $id->url = $cleanCategory . '/' . $fileName;
             }
 
             // Simpan data lainnya
-            $brg->brg_name = $request->brg_name;
-            $brg->price = $harga;
-            $brg->category_id = $request->category_id;
-            $brg->per = $request->per;
-            $brg->brg_deskripsi = $request->brg_deskripsi;
-            $brg->save();
+            $id->nama = $request->nama;
+            $id->harga = $harga;
+            $id->category_id = $request->category_id;
+            $id->satuan = $request->satuan;
+            $id->deskripsi = $request->deskripsi;
+            $id->save();
 
             DB::commit();
             return redirect()->back()->with('success', 'Data barang berhasil diperbarui.');
@@ -381,19 +403,19 @@ class BrgController extends Controller
 
     // ganti 22
 
-    public function destroy(Brg $brg)
+    public function destroy(Brg $id)
     {
         DB::beginTransaction();
 
         try {
             // Hapus gambar jika ada
-            if ($brg->url && file_exists(public_path('img/gambar_produk/' . $brg->url))) {
-                unlink(public_path('img/gambar_produk/' . $brg->url));
+            if ($id->url && file_exists(public_path('img/gambar_produk/' . $id->url))) {
+                unlink(public_path('img/gambar_produk/' . $id->url));
             }
 
-            DB::table('brgd')->where('brg_id', $brg->brg_id)->delete();
+            DB::table('brgd')->where('brg_id', $id->brg_id)->delete();
 
-            $brg->delete();
+            $id->delete();
 
             DB::commit();
             return redirect()->back()->with('success', 'Data barang dan distribusinya berhasil dihapus.');
@@ -415,7 +437,7 @@ class BrgController extends Controller
         ]);
 
         try {
-            $brg_id = $request->input('brg_id');
+            $id_id = $request->input('brg_id');
             $companCodes = $request->input('compan_code');
             $jumlahStok = $request->input('jumlah');
 
@@ -424,7 +446,7 @@ class BrgController extends Controller
 
                 BrgDetail::updateOrCreate(
                     [
-                        'brg_id' => $brg_id,
+                        'brg_id' => $id_id,
                         'compan_code' => $code,
                     ],
                     [

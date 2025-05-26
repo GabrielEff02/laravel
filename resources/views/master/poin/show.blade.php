@@ -5,6 +5,15 @@
     <!-- Content Header (Page header) -->
     <div class="content-header">
         <div class="container-fluid">
+            @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
             @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -29,13 +38,13 @@
             <br>
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Stok Produk {{ $header->brg_name}}</h1>
+                    <h1 class="m-0">Stok Produk {{ $header->product_name}}</h1>
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{url('/brg')}}">List Barang</a></li>
-                        <li class="breadcrumb-item active">{{$header->brg_id}}</li>
+                        <li class="breadcrumb-item"><a href="{{url('master/poin')}}">List Barang</a></li>
+                        <li class="breadcrumb-item active">{{$header->product_name}}</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -50,42 +59,39 @@
                     <div class="card">
                         <div class="card-body">
 
-                            <form action="{{ route('brg/show/storeBrgd') }}" method="POST">
+                            <form action="{{ route('master.poin.show.storePoind') }}" method="POST">
 
                                 @csrf
                                 <div class="tab-content mt-3">
                                     <div class="card mb-4">
                                         <div class="card-body">
                                             <div class="row">
-                                                <input type="hidden" name="brg_id" value="{{ $header->brg_id }}">
 
+                                                <input type="hidden" name="product_id"
+                                                    value="{{ $header->product_id }}">
                                                 <!-- Gambar Produk -->
                                                 <div class="col-md-3 text-center">
-                                                    <img src="{{ asset('img/gambar_produk/' . $header->url) }}"
-                                                        alt="{{ $header->brg_name }}" class="img-fluid rounded"
+                                                    <img src="{{ asset('/img/gambar_produk_tukar_poin/' . $header->image_url) }}"
+                                                        alt="{{ $header->product_name }}" class="img-fluid rounded"
                                                         style="max-height: 200px;">
                                                 </div>
 
                                                 <!-- Informasi Produk -->
                                                 <div class="col-md-9">
-                                                    <h4 class="mb-3">{{ $header->brg_name }}</h4>
+                                                    <h4 class="mb-3">{{ $header->product_name }}</h4>
+
 
                                                     <div class="row mb-2">
-                                                        <div class="col-md-4 font-weight-bold">Kategori:</div>
-                                                        <div class="col-md-8">{{ $header->category_name }}</div>
-                                                    </div>
+                                                        <div class="col-md-4 font-weight-bold">Poin:</div>
+                                                        <div class="col-md-8">
+                                                            {{ number_format($header->price, 0, ',', '.') }}
 
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 font-weight-bold">Harga:</div>
-                                                        <div class="col-md-8">Rp
-                                                            {{ number_format($header->price, 0, ',', '.') }} /
-                                                            {{ $header->per }}
                                                         </div>
                                                     </div>
 
                                                     <div class="row mb-2">
                                                         <div class="col-md-4 font-weight-bold">Deskripsi:</div>
-                                                        <div class="col-md-8">{{ $header->brg_deskripsi }}</div>
+                                                        <div class="col-md-8">{{ $header->product_description }}</div>
                                                     </div>
                                                 </div>
                                             </div>

@@ -20,10 +20,11 @@ class Brg extends Model
     protected $fillable =
     [
         "brg_id",
-        "brg_name",
-        "price",
-        "per",
-        "brg_deskripsi",
+        "nama",
+        "harga",
+        "satuan",
+        "deskripsi",
         "url",
+        "category_id",
     ];
 }

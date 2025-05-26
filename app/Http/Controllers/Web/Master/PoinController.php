@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Master;
 
 use App\Http\Controllers\Controller;
 
@@ -32,24 +32,30 @@ class PoinController extends Controller
     {
 
         // ganti 3
-        return view('poin.index');
+        return view('master.poin.index');
     }
 
     // ganti 4
 
     public function getPoin(Request $request)
     {
-        // ganti 5
 
-        if ($request->session()->has('periode')) {
-            $periode = $request->session()->get('periode')['bulan'] . '/' . $request->session()->get('periode')['tahun'];
-        } else {
-            $periode = '';
+
+        if (!$request->has('draw')) {
+            $columns = [
+                ['data' => 'DT_RowIndex', 'title' => 'No.', 'orderable' => false, 'searchable' => false, 'width' => '20px', 'className' => 'dt-center'],
+                ['data' => 'product_name', 'title' => 'Nama Produk', 'width' => '150px'],
+                ['data' => 'total_produk', 'title' => 'Total Produk', 'searchable' => false, 'width' => '80px', 'className' => 'dt-right'],
+                ['data' => 'price', 'title' => 'Harga', 'width' => '40px', 'className' => 'dt-center'],
+                ['data' => 'product_description', 'title' => 'Deskripsi', 'width' => '800px',],
+                ['data' => 'image_url', 'title' => 'Url', 'width' => '200px'],
+                ['data' => 'action', 'title' => 'Action', 'orderable' => false, 'searchable' => false, 'className' => 'dt-center', 'width' => '40px'],
+            ];
+
+            return response()->json(['columns' => $columns]);
         }
 
-
-
-        $poin = DB::table('products as p')
+        $id = DB::table('products as p')
             ->join('productd as pd', 'p.product_id', '=', 'pd.product_id')
             ->select(
                 'p.product_id',
@@ -70,7 +76,7 @@ class PoinController extends Controller
 
 
 
-        return Datatables::of($poin)
+        return Datatables::of($id)
             ->addIndexColumn()
             ->editColumn('product_description', function ($row) {
                 return $row->product_description ?: '<span class="text-muted">-</span>';
@@ -79,14 +85,14 @@ class PoinController extends Controller
             ->addColumn('action', function ($row) {
 
                 $btnPrivilege = '								
-                    <a class="dropdown-item" href="poin/edit/' . $row->product_id . '">
+                    <a class="dropdown-item" href="' . url('master/poin/edit/' . $row->product_id) . '">
                         <i class="fas fa-pen text-primary"></i>&nbsp&nbsp;&nbsp;; Edit
                     </a>
-                    <a class="dropdown-item" href="poin/show/' . $row->product_id . '">
+                    <a class="dropdown-item" href="' . url('master/poin/show/' . $row->product_id) . '">
                         <i class="fas fa-boxes text-success"></i>&nbsp;&nbsp;&nbsp; Edit Stok
                     </a>
                     <hr>
-                    <a class="dropdown-item text-danger" onclick="return confirm(&quot;Apakah anda yakin ingin hapus?&quot;)" href="poin/delete/' . $row->product_id . '">
+                    <a class="dropdown-item text-danger" onclick="return confirm(&quot;Apakah anda yakin ingin hapus?&quot;)" href="' . url('master/poin/delete/' . $row->product_id) . '">
                         <i class="fas fa-trash-alt"></i>&nbsp; Hapus
                     </a>';
 
@@ -119,8 +125,6 @@ class PoinController extends Controller
     public function create()
     {
 
-
-
         $listCabang = DB::table('compan')
             ->select('compan_code', 'name')
             ->get()
@@ -133,9 +137,17 @@ class PoinController extends Controller
                 return $item;
             });
 
-        return view('poin.create', [
-            'listCabang' => $listCabang
-        ]);
+        $form = [
+            ['label' => 'Nama Produk', 'value' => 'product_name', 'type' => 'string'],
+            ['label' => 'Harga Produk (Poin)', 'value' => 'price', 'type' => 'number'],
+            ['label' => 'Deskripsi Produk', 'value' => 'product_description', 'type' => 'string'],
+            ['label' => 'Gambar Produk', 'value' => 'image_url', 'type' => 'image', 'path' => 'img/gambar_produk_tukar_poin/'],
+        ];
+
+
+        $data = ['forms' => $form, 'listCabang' => $listCabang];
+
+        return view('master.poin.create', $data);
     }
 
     /**
@@ -164,24 +176,24 @@ class PoinController extends Controller
 
             $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($validated['product_name']));
 
-            $file = $request->file('imageUpload');
+            $file = $request->file('image_url');
             $extension = $file->getClientOriginalExtension();
 
             // Simpan file ke public storage
             $file->storeAs('public/img/gambar_produk_tukar_poin/' . $cleanProduct . '.' . $extension);
             // Simpan ke database dengan path relatif
-            $poin = new Poin();
-            $poin->product_name = $product_name;
-            $poin->price = $price;
-            $poin->product_description = $validated['product_description'] ?? null;
-            $poin->image_url =  $cleanProduct . '.' . $extension;
-            $poin->save();
+            $id = new Poin();
+            $id->product_name = $product_name;
+            $id->price = $price;
+            $id->product_description = $validated['product_description'] ?? null;
+            $id->image_url =  $cleanProduct . '.' . $extension;
+            $id->save();
             $file->move(public_path('img/gambar_produk_tukar_poin/'), $cleanProduct . '.' . $extension);
             foreach ($validated['compan_code'] as $index => $compan_code) {
                 $jumlah = $validated['jumlah'][$index];
                 if (!empty($compan_code) && !empty($jumlah)) {
                     $detail = new PoinDetail();
-                    $detail->product_id = $poin->product_id;
+                    $detail->product_id = $id->product_id;
                     $detail->compan_code = $compan_code;
                     $detail->quantity = $jumlah;
                     $detail->save();
@@ -210,21 +222,21 @@ class PoinController extends Controller
 
     // ganti 12
 
-    public function show(Poin $poin)
+    public function show(Poin $id)
     {
 
-        $product_id = $poin->product_id;
+        $product_id = $id->product_id;
         $productDetail = DB::table('productd')->where('product_id', $product_id)->get();
         $compan = DB::table('compan')->select('name', 'compan_code')->get();
 
-        // Tambahkan properti baru ke objek $poin
+        // Tambahkan properti baru ke objek $id
         $data = [
-            'header'        => $poin,
+            'header'        => $id,
             'detail'        => $productDetail,
             'company'        => $compan,
         ];
 
-        return view('poin.show', $data);
+        return view('master.poin.show', $data);
     }
 
     /**
@@ -236,26 +248,21 @@ class PoinController extends Controller
 
     // ganti 15
 
-    public function edit(Poin $poin)
+    public function edit(Poin $id)
     {
-
-
-        $listCabang = DB::table('compan')
-            ->select('compan_code', 'name')
-            ->get()
-            ->map(function ($item) {
-                $item->name = ucwords(strtolower(preg_replace_callback(
-                    '/[^\s\-&]+/',
-                    fn($matches) => ucfirst($matches[0]),
-                    $item->name
-                )));
-                return $item;
-            });
-        $data = [
-            'poin'        => $poin,
-            'listCabang'        => $listCabang,
+        $form = [
+            ['label' => 'Nama Produk', 'value' => 'product_name', 'type' => 'string'],
+            ['label' => 'Harga Produk (Poin)', 'value' => 'price', 'type' => 'number'],
+            ['label' => 'Deskripsi Barang', 'value' => 'product_description', 'type' => 'string'],
+            ['label' => 'Gambar Produk', 'value' => 'image_url', 'type' => 'image', 'path' => 'img/gambar_produk_tukar_poin/'],
         ];
-        return view('poin.edit', $data);
+        $id['primaryKey'] = $id['product_id'];
+
+        $data = [
+            'forms' => $form,
+            'data' => $id,
+        ];
+        return view('master.poin.edit', $data);
     }
 
     /**
@@ -270,13 +277,13 @@ class PoinController extends Controller
 
 
 
-    public function update(Request $request, Poin $poin)
+    public function update(Request $request, Poin $id)
     {
         $request->validate([
             'product_name' => 'required|string|max:255',
             'price' => 'required|string',
             'product_description' => 'nullable|string',
-            'imageUpload' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'image_url' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         DB::beginTransaction();
@@ -289,13 +296,13 @@ class PoinController extends Controller
             // Format nama folder & nama file
             $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($request->product_name));
             $path = public_path('img/gambar_produk_tukar_poin/');
-            if ($request->hasFile('imageUpload')) {
+            if ($request->hasFile('image_url')) {
                 // Hapus gambar lama jika ada
-                if ($poin->image_url && file_exists(public_path('img/gambar_produk_tukar_poin/' . $poin->image_url))) {
-                    unlink(public_path('img/gambar_produk_tukar_poin/' . $poin->image_url));
+                if ($id->image_url && file_exists(public_path('img/gambar_produk_tukar_poin/' . $id->image_url))) {
+                    unlink(public_path('img/gambar_produk_tukar_poin/' . $id->image_url));
                 }
 
-                $file = $request->file('imageUpload');
+                $file = $request->file('image_url');
                 $extension = $file->getClientOriginalExtension();
                 $fileName = $cleanProduct . '_' . time() . '.' . $extension;
 
@@ -303,14 +310,14 @@ class PoinController extends Controller
                 $file->move($path, $fileName);
 
                 // Simpan path relatif ke database
-                $poin->image_url = $fileName;
+                $id->image_url = $fileName;
             }
 
             // Simpan data lainnya
-            $poin->product_name = $request->product_name;
-            $poin->price = $harga;
-            $poin->product_description = $request->product_description;
-            $poin->save();
+            $id->product_name = $request->product_name;
+            $id->price = $harga;
+            $id->product_description = $request->product_description;
+            $id->save();
 
             DB::commit();
             return redirect()->back()->with('success', 'Data barang berhasil diperbarui.');
@@ -329,19 +336,19 @@ class PoinController extends Controller
 
     // ganti 22
 
-    public function destroy(Poin $poin)
+    public function destroy(Poin $id)
     {
         DB::beginTransaction();
 
         try {
             // Hapus gambar jika ada
-            if ($poin->image_url && file_exists(public_path('img/gambar_produk_tukar_poin/' . $poin->image_url))) {
-                unlink(public_path('img/gambar_produk_tukar_poin/' . $poin->image_url));
+            if ($id->image_url && file_exists(public_path('img/gambar_produk_tukar_poin/' . $id->image_url))) {
+                unlink(public_path('img/gambar_produk_tukar_poin/' . $id->image_url));
             }
 
-            DB::table('productd')->where('product_id', $poin->product_id)->delete();
+            DB::table('productd')->where('product_id', $id->product_id)->delete();
 
-            $poin->delete();
+            $id->delete();
 
             DB::commit();
             return redirect()->back()->with('success', 'Data barang dan distribusinya berhasil dihapus.');

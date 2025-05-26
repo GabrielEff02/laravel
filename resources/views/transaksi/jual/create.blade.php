@@ -51,15 +51,26 @@
                 }, 3000);
             </script>
             <br>
-
             <div class="row mb-2">
+                <script>
+                    setTimeout(() => {
+                        const alerts = document.querySelectorAll('.alert');
+                        alerts.forEach(alert => {
+                            alert.classList.remove('show');
+                            alert.classList.add('fade');
+                            setTimeout(() => alert.remove(), 500);
+                        });
+                    }, 3000);
+                </script>
+
+
                 <div class="col-sm-6">
-                    <h1 class="m-0">Tambah Produk Penukaran Baru</h1>
+                    <h1 class="m-0">Tambah Barang</h1>
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="/poin">Poin</a></li>
+                        <li class="breadcrumb-item"><a href="{{url('master/brg')}}">List Barang</a></li>
                         <li class="breadcrumb-item active">Add</li>
                     </ol>
                 </div><!-- /.col -->
@@ -74,34 +85,11 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <form action="/poin/store" id="entri" method="POST" enctype="multipart/form-data">
+                            <form action="{{ url('master/brg/store') }}" id="entri" method="POST"
+                                enctype="multipart/form-data">
 
                                 @csrf
 
-
-
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="product_name" class="form-label">Nama Produk</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" class="form-control product_name" required id="product_name"
-                                            name="product_name" placeholder="Masukkan Nama Produk">
-                                    </div>
-                                </div>
-
-
-
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="price" class="form-label">Harga Rp.</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" class="form-control price" id="price" name="price"
-                                            placeholder="Masukkan Harga" required oninput="formatPrice(this)"
-                                            autocomplete="off">
-                                    </div>
-                                </div>
                                 <script>
                                     function formatPrice(input) {
                                         // Hapus semua kecuali angka
@@ -113,43 +101,68 @@
                                         input.value = formatted;
                                     }
                                 </script>
-
-
-                                <div class="form-group row">
-
+                                @foreach ($forms as $form)
+                                @if($form['type'] == 'selection')
+                                <div class="form-group row mt-2">
                                     <div class="col-md-2">
-                                        <label for="product_description" class="form-label">Deskripsi Produk</label>
+                                        <label for="{{ $form['value'] }}"
+                                            class="form-label">{{ $form['label'] }}</label>
                                     </div>
                                     <div class="col-md-4">
-                                        <input type="text" class="form-control product_description"
-                                            id="product_description" name="product_description"
-                                            placeholder="Masukkan Deskripsi Produk">
+                                        <select name="{{ $form['value'] }}" class="form-control" required>
+                                            <option value="">-- Pilih {{ $form['label'] }} --</option>
+                                            @foreach($form['option'] as $option)
+                                            @php
+                                            $value = is_array($option) ? $option['value'] : $option->value;
+                                            $label = is_array($option) ? $option['label'] : $option->label;
+                                            @endphp
+                                            <option value="{{ $value }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                @elseif($form['type'] == 'string')
+                                <div class="form-group row">
+                                    <div class="col-md-2">
+                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control {{$form['value']}}" required
+                                            id="{{$form['value']}}" name="{{$form['value']}}"
+                                            placeholder="Masukkan {{$form['label']}}">
+                                    </div>
+                                </div>
+                                @elseif($form['type'] == 'number')
+                                <div class="form-group row">
+                                    <div class="col-md-2">
+                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control {{$form['value']}}" required
+                                            oninput="formatPrice(this)" id="{{$form['value']}}"
+                                            name="{{$form['value']}}" placeholder="Masukkan {{$form['label']}}">
+                                    </div>
+                                </div>
+                                @elseif($form['type'] == 'image')
+                                <div class="form-group row">
+                                    <div class="col-md-2">
+                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="file" name="{{$form['value']}}" required
+                                            class="form-control {{$form['value']}}" id='{{$form['value']}}'
+                                            accept=".jpeg, .jpg, .png">
                                     </div>
                                 </div>
                                 <div class="form-group row">
-
-                                    <div class="col-md-2">
-                                        <label for="imageUpload" class="form-label">Gambar Produk</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="file" name="imageUpload" class="form-control imageUpload"
-                                            id='imageUpload' accept=".jpeg, .jpg, .png">
-
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-
                                     <div class="col-md-2">
                                     </div>
                                     <div class="col-md-4">
                                         <img id="preview" src="#" alt="Preview" style="display: none;" />
                                     </div>
                                 </div>
-
-                                <hr style="margin-top: 30px; margin-buttom: 30px">
-
                                 <script>
-                                    const fileInput = document.getElementById('imageUpload');
+                                    const fileInput = document.getElementById("{{ $form['value'] }}");
                                     const previewImage = document.getElementById('preview');
 
                                     fileInput.addEventListener('change', function() {
@@ -169,7 +182,44 @@
                                             previewImage.src = '#';
                                         }
                                     });
+                                </script>
+                                @elseif($form['type'] == 'password')
+                                <div class="form-group row">
+                                    <div class="col-md-2">
+                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="password" class="form-control {{$form['value']}}" required
+                                            id="{{$form['value']}}" name="{{$form['value']}}"
+                                            placeholder="Masukkan {{$form['label']}}">
+                                        <span class="position-absolute"
+                                            style="top: 50%; right: 25px; transform: translateY(-50%); cursor: pointer;"
+                                            onclick="togglePassword(`{{ $form['value'] }}`, this)">
+                                            <i class="fas fa-eye"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                @endif
+                                @endforeach
+                                <script>
+                                    function togglePassword(id, el) {
+                                        const input = document.getElementById(id);
+                                        const icon = el.querySelector('i');
 
+                                        if (input.type === "password") {
+                                            input.type = "text";
+                                            icon.classList.remove('fa-eye');
+                                            icon.classList.add('fa-eye-slash');
+                                        } else {
+                                            input.type = "password";
+                                            icon.classList.remove('fa-eye-slash');
+                                            icon.classList.add('fa-eye');
+                                        }
+                                    }
+                                </script>
+
+                                <hr style="margin-top: 30px; margin-buttom: 30px">
+                                <script>
                                     var idrow = 1;
                                     var baris = 1;
 
@@ -221,6 +271,7 @@
                                         });
                                     }
                                 </script>
+
                                 <table id="datatable" class="table table-striped table-border">
                                     <thead class="text-center">
                                         <tr>
@@ -303,38 +354,18 @@
 
 @section('footer-scripts')
 <!-- TAMBAH 1 -->
-
 <script src="{{ asset('js/autoNumerics/autoNumeric.min.js') }}"></script>
 <!--       <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script> -->
 <script src="{{asset('foxie_js_css/bootstrap.bundle.min.js')}}"></script>
-
 <script>
     $(document).ready(function() {
-
         $('body').on('click', '.btn-delete', function() {
             var val = $(this).parents("tr").remove();
             baris--;
             nomor();
         });
-
-
-
-
-
     });
 
-
-
-
-
-
-
-    function simpan() {
-
-
-
-
-
-    }
+    function simpan() {}
 </script>
 @endsection

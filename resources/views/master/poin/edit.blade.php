@@ -48,16 +48,15 @@
                 }, 3000);
             </script>
             <br>
-
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Edit Produk Penukaran Poin {{$poin->product_name}}</h1>
+                    <h1 class="m-0">{{$data->product_name}}</h1>
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{url('/poin')}}">List Produk</a></li>
-                        <li class="breadcrumb-item active">Edit Produk Penukaran Poin {{$poin->product_name}}</li>
+                        <li class="breadcrumb-item"><a href="{{url('master/poin')}}">List Barang</a></li>
+                        <li class="breadcrumb-item active">{{$data->product_name}}</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -71,76 +70,85 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <form action="{{ url('/poin/update/'.$poin->product_id) }}" id="entri" method="POST"
+                            <form action="{{ url('master/poin/update/'.$data->primaryKey) }}" id="entri" method="POST"
                                 enctype="multipart/form-data">
                                 @csrf
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="product_name" class="form-label">Nama Produk</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" class="form-control product_name" required id="product_name"
-                                            name="product_name" placeholder="Masukkan Nama Produk"
-                                            value="{{ $poin->product_name }}">
-                                    </div>
-                                </div>
-
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="price" class="form-label">Harga Rp.</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" class="form-control price" id="price" name="price"
-                                            placeholder="Masukkan Harga" required oninput="formatPrice(this)"
-                                            value="{{ $poin->price }}" autocomplete="off">
-                                    </div>
-                                </div>
-
                                 <script>
                                     function formatPrice(input) {
+                                        // Hapus semua kecuali angka
                                         let value = input.value.replace(/\D/g, '');
+
+                                        // Format angka dengan titik ribuan
                                         let formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
                                         input.value = formatted;
                                     }
                                 </script>
-
-
-
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="brg_deskripsi" class="form-label">Deskripsi Barang</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" class="form-control product_description"
-                                            id="product_description" name="product_description"
-                                            value="{{ $poin->product_description }}"
-                                            placeholder="Masukkan Deskripsi Barang">
-                                    </div>
-                                </div>
-
-                                <!-- Tambahan input untuk upload gambar -->
+                                @foreach ($forms as $form)
+                                @if($form['type'] == 'selection')
                                 <div class="form-group row mt-2">
                                     <div class="col-md-2">
-                                        <label for="imageUpload" class="form-label">Gambar Barang</label>
+                                        <label for="{{ $form['value'] }}"
+                                            class="form-label">{{ $form['label'] }}</label>
                                     </div>
                                     <div class="col-md-4">
-                                        <input type="file" class="form-control" id="imageUpload" name="imageUpload"
-                                            accept="image/*">
-
+                                        <select name="{{ $form['value'] }}" class="form-control" required>
+                                            <option value="">-- Pilih {{ $form['label'] }} --</option>
+                                            @foreach($form['option'] as $option)
+                                            <option value="{{ is_array($option) ? $option['value'] : $option->value }}"
+                                                {{ $data->{is_array($form) ? $form['value'] : $form->value} == (is_array($option) ? $option['value'] : $option->value) ? 'selected' : '' }}>
+                                                {{ is_array($option) ? $option['label'] : $option->label }}
+                                            </option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
-
+                                @elseif($form['type'] == 'string')
+                                <div class="form-group row">
+                                    <div class="col-md-2">
+                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control {{$form['value']}}" required
+                                            id="{{$form['value']}}" name="{{$form['value']}}"
+                                            placeholder="Masukkan {{$form['label']}}"
+                                            value="{{ $data->{is_array($form) ? $form['value'] : $form->value} }}">
+                                    </div>
+                                </div>
+                                @elseif($form['type'] == 'number')
+                                <div class="form-group row">
+                                    <div class="col-md-2">
+                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control {{$form['value']}}" required
+                                            oninput="formatPrice(this)" id="{{$form['value']}}"
+                                            name="{{$form['value']}}" placeholder="Masukkan {{$form['label']}}"
+                                            value="{{ $data->{is_array(value: $form) ? $form['value'] : $form->value} }}">
+                                    </div>
+                                </div>
+                                @elseif($form['type'] == 'image')
+                                <div class="form-group row">
+                                    <div class="col-md-2">
+                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="file" name="{{$form['value']}}"
+                                            class="form-control {{$form['value']}}" id='{{$form['value']}}'
+                                            accept=".jpeg, .jpg, .png">
+                                    </div>
+                                </div>
                                 <div class="form-group row mt-2">
                                     <div class="col-md-2">
                                         <label for="imageNow" class="form-label">Gambar Saat Ini</label>
                                     </div>
                                     <div class="col-md-4">
-                                        <img src="{{ asset('img/gambar_produk_tukar_poin/'.$poin->image_url) }}"
+                                        <img src="{{ asset($form['path'].$data->{is_array(value: $form) ? $form['value'] : $form->value}) }}"
                                             id="preview" alt="Gambar Barang" style="max-width:150px; margin-top:5px;">
                                     </div>
                                 </div>
                                 <script>
-                                    const fileInput = document.getElementById('imageUpload');
+                                    const fileInput = document.getElementById("{{$form['value']}}");
                                     const previewImage = document.getElementById('preview');
 
                                     fileInput.addEventListener('change', function() {
@@ -161,6 +169,9 @@
                                         }
                                     });
                                 </script>
+
+                                @endif
+                                @endforeach
                                 <div class="form-group row mt-3">
                                     <div class="col-md-6">
                                         <button type="submit" class="btn btn-success btn-lg"
@@ -171,6 +182,8 @@
                                     </div>
                                 </div>
                             </form>
+
+
 
                         </div>
                     </div>

@@ -45,7 +45,7 @@ class PoinController extends Controller
             $columns = [
                 ['data' => 'DT_RowIndex', 'title' => 'No.', 'orderable' => false, 'searchable' => false, 'width' => '20px', 'className' => 'dt-center'],
                 ['data' => 'product_name', 'title' => 'Nama Produk', 'width' => '150px'],
-                ['data' => 'total_produk', 'title' => 'Total Produk', 'searchable' => false, 'width' => '80px', 'className' => 'dt-right'],
+                ['data' => 'total_produk', 'title' => 'Total Produk', 'width' => '80px', 'className' => 'dt-right'],
                 ['data' => 'price', 'title' => 'Harga', 'width' => '40px', 'className' => 'dt-center'],
                 ['data' => 'product_description', 'title' => 'Deskripsi', 'width' => '800px',],
                 ['data' => 'image_url', 'title' => 'Url', 'width' => '200px'],
@@ -78,9 +78,14 @@ class PoinController extends Controller
 
         return Datatables::of($id)
             ->addIndexColumn()
+
+            ->editColumn('price', function ($row) {
+                return number_format($row->price, 0, ',', '.');
+            })
             ->editColumn('product_description', function ($row) {
                 return $row->product_description ?: '<span class="text-muted">-</span>';
             })
+
 
             ->addColumn('action', function ($row) {
 

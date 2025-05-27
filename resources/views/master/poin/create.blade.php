@@ -1,17 +1,17 @@
 @extends('layouts.main')
 
 <style>
-.card {}
+    .card {}
 
-.form-control:focus {
-    background-color: #E0FFFF !important;
-}
+    .form-control:focus {
+        background-color: #E0FFFF !important;
+    }
 
-#preview {
-    margin-top: 15px;
-    max-height: 150px;
-    border-radius: 8px;
-}
+    #preview {
+        margin-top: 15px;
+        max-height: 150px;
+        border-radius: 8px;
+    }
 </style>
 
 @section('content')
@@ -41,18 +41,6 @@
             </div>
             @endif
             <script>
-            setTimeout(() => {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(alert => {
-                    alert.classList.remove('show');
-                    alert.classList.add('fade');
-                    setTimeout(() => alert.remove(), 500);
-                });
-            }, 3000);
-            </script>
-            <br>
-            <div class="row mb-2">
-                <script>
                 setTimeout(() => {
                     const alerts = document.querySelectorAll('.alert');
                     alerts.forEach(alert => {
@@ -61,6 +49,18 @@
                         setTimeout(() => alert.remove(), 500);
                     });
                 }, 3000);
+            </script>
+            <br>
+            <div class="row mb-2">
+                <script>
+                    setTimeout(() => {
+                        const alerts = document.querySelectorAll('.alert');
+                        alerts.forEach(alert => {
+                            alert.classList.remove('show');
+                            alert.classList.add('fade');
+                            setTimeout(() => alert.remove(), 500);
+                        });
+                    }, 3000);
                 </script>
 
 
@@ -91,15 +91,15 @@
                                 @csrf
 
                                 <script>
-                                function formatPrice(input) {
-                                    // Hapus semua kecuali angka
-                                    let value = input.value.replace(/\D/g, '');
+                                    function formatPrice(input) {
+                                        // Hapus semua kecuali angka
+                                        let value = input.value.replace(/\D/g, '');
 
-                                    // Format angka dengan titik ribuan
-                                    let formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                                        // Format angka dengan titik ribuan
+                                        let formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-                                    input.value = formatted;
-                                }
+                                        input.value = formatted;
+                                    }
                                 </script>
                                 @foreach ($forms as $form)
                                 @if($form['type'] == 'selection')
@@ -162,26 +162,26 @@
                                     </div>
                                 </div>
                                 <script>
-                                const fileInput = document.getElementById("{{ $form['value'] }}");
-                                const previewImage = document.getElementById('preview');
+                                    const fileInput = document.getElementById("{{ $form['value'] }}");
+                                    const previewImage = document.getElementById('preview');
 
-                                fileInput.addEventListener('change', function() {
-                                    const file = this.files[0];
-                                    if (file) {
+                                    fileInput.addEventListener('change', function() {
+                                        const file = this.files[0];
+                                        if (file) {
 
-                                        // Tampilkan gambar
-                                        const reader = new FileReader();
-                                        reader.onload = function(e) {
-                                            previewImage.src = e.target.result;
-                                            previewImage.style.display = 'block';
-                                        };
-                                        reader.readAsDataURL(file);
-                                    } else {
-                                        fileLabel.textContent = 'Upload Foto';
-                                        previewImage.style.display = 'none';
-                                        previewImage.src = '#';
-                                    }
-                                });
+                                            // Tampilkan gambar
+                                            const reader = new FileReader();
+                                            reader.onload = function(e) {
+                                                previewImage.src = e.target.result;
+                                                previewImage.style.display = 'block';
+                                            };
+                                            reader.readAsDataURL(file);
+                                        } else {
+                                            fileLabel.textContent = 'Upload Foto';
+                                            previewImage.style.display = 'none';
+                                            previewImage.src = '#';
+                                        }
+                                    });
                                 </script>
                                 @elseif($form['type'] == 'password')
                                 <div class="form-group row">
@@ -202,39 +202,39 @@
                                 @endif
                                 @endforeach
                                 <script>
-                                function togglePassword(id, el) {
-                                    const input = document.getElementById(id);
-                                    const icon = el.querySelector('i');
+                                    function togglePassword(id, el) {
+                                        const input = document.getElementById(id);
+                                        const icon = el.querySelector('i');
 
-                                    if (input.type === "password") {
-                                        input.type = "text";
-                                        icon.classList.remove('fa-eye');
-                                        icon.classList.add('fa-eye-slash');
-                                    } else {
-                                        input.type = "password";
-                                        icon.classList.remove('fa-eye-slash');
-                                        icon.classList.add('fa-eye');
+                                        if (input.type === "password") {
+                                            input.type = "text";
+                                            icon.classList.remove('fa-eye');
+                                            icon.classList.add('fa-eye-slash');
+                                        } else {
+                                            input.type = "password";
+                                            icon.classList.remove('fa-eye-slash');
+                                            icon.classList.add('fa-eye');
+                                        }
                                     }
-                                }
                                 </script>
 
                                 <hr style="margin-top: 30px; margin-buttom: 30px">
                                 <script>
-                                var idrow = 1;
-                                var baris = 1;
+                                    var idrow = 1;
+                                    var baris = 1;
 
-                                function tambah() {
-                                    var x = document.getElementById('datatable').insertRow(baris + 1);
-                                    var td1 = x.insertCell(0);
-                                    var td2 = x.insertCell(1);
-                                    var td3 = x.insertCell(2);
-                                    var td4 = x.insertCell(3);
+                                    function tambah() {
+                                        var x = document.getElementById('datatable').insertRow(baris + 1);
+                                        var td1 = x.insertCell(0);
+                                        var td2 = x.insertCell(1);
+                                        var td3 = x.insertCell(2);
+                                        var td4 = x.insertCell(3);
 
-                                    td1.innerHTML =
-                                        `<input name='REC[]' id=REC${idrow} type='text' class='REC form-control'
+                                        td1.innerHTML =
+                                            `<input name='REC[]' id=REC${idrow} type='text' class='REC form-control'
                                     onkeypress='return tabE(this,event)' readonly>`;
-                                    td2.innerHTML =
-                                        `<select name="compan_code[]" id="compan_code${idrow}" required
+                                        td2.innerHTML =
+                                            `<select name="compan_code[]" id="compan_code${idrow}" required
                                     class="form-control compan_code">
                                     <option value="">-- Pilih Cabang --</option>
                                     @foreach($listCabang as $cabang)
@@ -243,33 +243,33 @@
                                     </option>
                                     @endforeach
                                 </select>`;
-                                    td3.innerHTML = `<input name='jumlah[]' id='jumlah${idrow}' type='number'
+                                        td3.innerHTML = `<input name='jumlah[]' id='jumlah${idrow}' type='number'
                                     style='text-align: right' oninput='formatPrice(this)' required
                                     class='form-control jumlah text-primary'>`;
-                                    td4.innerHTML = `<button type="button"
+                                        td4.innerHTML = `<button type="button"
                                     class="btn btn-sm btn-circle btn-outline-danger btn-delete"
                                     onclick="hapusBaris(this)">
                                     <i class="fa fa-fw fa-trash"></i>
                                 </button>`;
 
-                                    idrow++;
-                                    baris++;
-                                    nomor();
-                                }
+                                        idrow++;
+                                        baris++;
+                                        nomor();
+                                    }
 
-                                function hapusBaris(btn) {
-                                    var row = btn.closest('tr');
-                                    row.remove();
-                                    idrow--;
-                                    baris--;
-                                }
+                                    function hapusBaris(btn) {
+                                        var row = btn.closest('tr');
+                                        row.remove();
+                                        idrow--;
+                                        baris--;
+                                    }
 
-                                function nomor() {
-                                    var i = 1;
-                                    document.querySelectorAll(".REC").forEach(function(input) {
-                                        input.value = i++;
-                                    });
-                                }
+                                    function nomor() {
+                                        var i = 1;
+                                        document.querySelectorAll(".REC").forEach(function(input) {
+                                            input.value = i++;
+                                        });
+                                    }
                                 </script>
 
                                 <table id="datatable" class="table table-striped table-border">
@@ -321,14 +321,10 @@
                                             class="fas fa-plus fa-sm md-3"></i> </button>
                                 </div>
                                 <div class="form-group row mt-3">
-                                    <div class="col-md-6">
-
-                                        <button type="submit" class="btn btn-success btn-lg"
-                                            onclick='return confirm("Apakah anda yakin Menambahkan Produk?")'>
-                                            <i class="fas fa-save me-2"></i> Simpan
-                                        </button>
-
-                                    </div>
+                                    <div class="col-md-6"></div>
+                                    <button type="submit" class="custom-btn btn-lg btn-confirm-submit">
+                                        <i class="fas fa-save me-2"></i> Simpan
+                                    </button>
                                 </div>
                         </div>
 
@@ -358,14 +354,12 @@
 <!--       <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script> -->
 <script src="{{asset('foxie_js_css/bootstrap.bundle.min.js')}}"></script>
 <script>
-$(document).ready(function() {
-    $('body').on('click', '.btn-delete', function() {
-        var val = $(this).parents("tr").remove();
-        baris--;
-        nomor();
+    $(document).ready(function() {
+        $('body').on('click', '.btn-delete', function() {
+            var val = $(this).parents("tr").remove();
+            baris--;
+            nomor();
+        });
     });
-});
-
-function simpan() {}
 </script>
 @endsection

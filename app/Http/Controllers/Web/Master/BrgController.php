@@ -43,8 +43,8 @@ class BrgController extends Controller
             $columns = [
                 ['data' => 'DT_RowIndex', 'title' => 'No.', 'orderable' => false, 'searchable' => false, 'width' => '20px', 'className' => 'dt-center'],
                 ['data' => 'nama', 'title' => 'Nama Barang', 'width' => '150px'],
-                ['data' => 'category_name', 'title' => 'Kategori', 'searchable' => false, 'width' => '60px'],
-                ['data' => 'total_produk', 'title' => 'Total Produk', 'searchable' => false, 'width' => '80px', 'className' => 'dt-center'],
+                ['data' => 'category_name', 'title' => 'Kategori',  'width' => '60px'],
+                ['data' => 'total_produk', 'title' => 'Total Produk',  'width' => '80px', 'className' => 'dt-center'],
                 ['data' => 'harga', 'title' => 'Harga', 'width' => '40px', 'className' => 'dt-right'],
                 ['data' => 'satuan', 'title' => 'Satuan', 'width' => '45px'],
                 ['data' => 'deskripsi', 'title' => 'Deskripsi', 'width' => '800px'],
@@ -84,6 +84,25 @@ class BrgController extends Controller
             ->editColumn('deskripsi', function ($row) {
                 return $row->deskripsi ?: '<span class="text-muted">-</span>';
             })
+            ->filter(function ($query) use ($request) {
+                if ($search = $request->input('search.value')) {
+                    if (preg_match('/^\d+$/', $search)) {
+                        $query->havingRaw('CAST(SUM(bd.quantity) AS CHAR) LIKE ?', ["%{$search}%"]);
+                    } else {
+                        $query->where(function ($q) use ($search) {
+                            $q->where('b.nama', 'like', "%{$search}%")
+                                ->orWhere('b.harga', 'like', "%{$search}%")
+                                ->orWhere('b.satuan', 'like', "%{$search}%")
+                                ->orWhere('b.deskripsi', 'like', "%{$search}%")
+                                ->orWhere('b.url', 'like', "%{$search}%")
+                                ->orWhere('c.category_name', 'like', "%{$search}%");
+                        });
+                    }
+                }
+            })
+            ->editColumn('harga', function ($row) {
+                return number_format($row->harga, 0, ',', '.');
+            })
             ->addColumn('action', function ($row) {
                 $btnPrivilege = '
     <a class="dropdown-item" href="' . url('master/brg/edit/' . $row->brg_id) . '">
@@ -103,7 +122,7 @@ class BrgController extends Controller
                     <a class="btn btn-secondary dropdown-toggle btn-sm" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fas fa-bars"></i>
                     </a>
-                    <div class="dropdown-menu">' . $btnPrivilege . '</div>
+                    <div class="dropdown-menu" >' . $btnPrivilege . '</div>
                 </div>';
             })
             ->rawColumns(['action'])
@@ -255,8 +274,7 @@ class BrgController extends Controller
     public function show(Brg $id)
     {
 
-        $id_id = $id->brg_id;
-        $idDetail = DB::table('brgd')->where('brg_id', $id_id)->get();
+        $idDetail = DB::table('brgd')->where('brg_id', $id->brg_id)->get();
         $compan = DB::table('compan')->select('name', 'compan_code')->get();
         $categories = DB::table('categories')
             ->where('category_id', $id->category_id)

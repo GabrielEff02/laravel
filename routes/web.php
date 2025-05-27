@@ -53,6 +53,7 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
             Route::post('/update/{id}', 'update')->name("transaksi.$menu.update");
             Route::get('/delete/{id}', 'destroy')->name("transaksi.$menu.delete");
             Route::get('/get-' . $menu, 'get' . ucwords($menu))->name("transaksi.get-" . $menu);
+            Route::get('/get-' . $menu . '-driver', 'get' . ucwords($menu) . 'Driver')->name("transaksi.get-" . $menu . '-driver');
             if ($menu == 'jual' || $menu == 'poin') {
                 Route::post(
                     '/show/store' . ucfirst($menu) . 'd',

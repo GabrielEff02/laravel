@@ -105,7 +105,8 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card" style="padding-right:20px !important; padding-left:20px !important;">
+
                         <div class="card-body">
                             <table class="table table-fixed table-striped table-border table-hover nowrap datatable"
                                 id="datatable">

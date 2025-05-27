@@ -173,13 +173,10 @@
                                 @endif
                                 @endforeach
                                 <div class="form-group row mt-3">
-                                    <div class="col-md-6">
-                                        <button type="submit" class="btn btn-success btn-lg"
-                                            onclick='return confirm("Apakah anda yakin Mengubah Detail Barang?")'>
-
-                                            <i class="fas fa-save me-2"></i> Simpan
-                                        </button>
-                                    </div>
+                                    <div class="col-md-6"></div>
+                                    <button type="submit" class="custom-btn btn-lg btn-confirm-submit">
+                                        <i class="fas fa-save me-2"></i> Simpan
+                                    </button>
                                 </div>
                             </form>
 

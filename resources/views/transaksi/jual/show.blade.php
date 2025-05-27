@@ -1,174 +1,218 @@
 @extends('layouts.main')
+<style>
+    .custom {
+        background-color: #F7D8B4 !important;
+        border: 1px solid #ced4da !important;
+    }
 
+    .form-control {
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+</style>
 @section('content')
 <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
     <div class="content-header">
         <div class="container-fluid">
-            @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-            @endif
-            @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-            </div>
-            @endif
-
-            @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ session('error') }}
-            </div>
-            @endif
-            <script>
-                setTimeout(() => {
-                    const alerts = document.querySelectorAll('.alert');
-                    alerts.forEach(alert => {
-                        alert.classList.remove('show');
-                        alert.classList.add('fade');
-                        setTimeout(() => alert.remove(), 500);
-                    });
-                }, 3000);
-            </script>
             <br>
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Stok Produk {{ $header->nama}}</h1>
+                    <h1 class="m-0">Detail Transaksi #{{ $header->transaction_id }}</h1>
                 </div>
-                <!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{url('master/brg')}}">List Barang</a></li>
-                        <li class="breadcrumb-item active">{{$header->nama}}</li>
+                        <li class="breadcrumb-item"><a href="{{ url('transaksi') }}">Transaksi</a></li>
+                        <li class="breadcrumb-item active">Detail</li>
                     </ol>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
+                </div>
+            </div>
+        </div>
     </div>
-    <!-- /.content-header -->
 
     <div class="content">
         <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
 
-                            <form action="{{ route('master.brg.show.storeBrgd') }}" method="POST">
+            <!-- Info Utama -->
+            <div class="card mb-4">
+                <div class="card-body">
 
-                                @csrf
-                                <div class="tab-content mt-3">
-                                    <div class="card mb-4">
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <input type="hidden" name="brg_id" value="{{ $header->brg_id }}">
-
-                                                <!-- Gambar Produk -->
-                                                <div class="col-md-3 text-center">
-                                                    <img src="{{ asset('img/gambar_produk/' . $header->url) }}"
-                                                        alt="{{ $header->nama }}" class="img-fluid rounded"
-                                                        style="max-height: 200px;">
-                                                </div>
-
-                                                <!-- Informasi Produk -->
-                                                <div class="col-md-9">
-                                                    <h4 class="mb-3">{{ $header->nama }}</h4>
-
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 font-weight-bold">Kategori:</div>
-                                                        <div class="col-md-8">{{ ucfirst($header->category_name) }}
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 font-weight-bold">Harga:</div>
-                                                        <div class="col-md-8">Rp
-                                                            {{ number_format($header->harga, 0, ',', '.') }} /
-                                                            {{ $header->satuan }}
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 font-weight-bold">Deskripsi:</div>
-                                                        <div class="col-md-8">{{ $header->deskripsi }}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-
-
-                                    <hr style="margin-top: 30px; margin-buttom: 30px">
-
-                                    <table id="datatable" class="table table-striped table-border">
-                                        <thead>
-                                            <tr>
-                                                <th style="text-align: center;">No.</th>
-                                                <th style="text-align: center;">Cabang</th>
-                                                <th style="text-align: center;">Jumlah Stok</th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-
-
-                                            @foreach ($company as $i => $compan)
-                                            @php
-                                            $found = collect($detail)->firstWhere('compan_code', $compan->compan_code);
-                                            $qty = $found ? $found->quantity : 0;
-                                            @endphp
-                                            <tr>
-                                                <td style="width: 60px;">
-                                                    <input type="text" value="{{ $i + 1 }}"
-                                                        class="form-control form-control-sm text-center" readonly>
-                                                </td>
-
-                                                <td>
-                                                    <input name="compan[]" type="text" value="{{ $compan->name }}"
-                                                        class="form-control form-control-sm" readonly>
-                                                    <input type="hidden" name="compan_code[]"
-                                                        value="{{ $compan->compan_code }}">
-                                                </td>
-
-                                                <td style="width: 150px;">
-                                                    <input name="jumlah[]" type="number" value="{{ $qty }}"
-                                                        class="form-control form-control-sm jumlah text-end">
-                                                </td>
-
-                                            </tr>
-                                            @endforeach
-
-
-
-                                        </tbody>
-
-                                    </table>
-                                    <div class="text-end mt-3">
-                                        <button type="submit" class="btn btn-success btn-lg"
-                                            onclick='return confirm("Apakah anda yakin Mengubah Stok?")'>
-                                            <i class="fas fa-save me-2"></i> Simpan
-                                        </button>
-                                    </div>
-
-
-                                </div>
-
-                            </form>
-
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Nama Pemesan</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" value="{{ $header->name }}" readonly>
                         </div>
                     </div>
-                    <!-- /.card -->
+
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Telepon</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" value="{{ $header->phone }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Email</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" value="{{ $header->email }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Alamat Pengiriman</label>
+                        </div>
+                        <div class="col-md-4">
+                            <textarea class="form-control" rows="2" readonly>{{ $header->address }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Tanggal Transaksi</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" value="{{ $header->transaction_date }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Pengiriman</label>
+                        </div>
+                        <div class="col-md-4">
+                            @if($header->is_delivery == 1)
+                            <div class="form-control custom d-flex align-items-center">
+                                <i class="fas fa-shipping-fast me-2"></i>
+                            </div>
+                            @else
+                            <div class="form-control custom d-flex align-items-center">
+                                <i class="fas fa-store me-2"></i>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Cabang</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" value="{{ $header->compan_name }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Driver</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control"
+                                value="{{ $header->is_delivery == 1 ? ($header->driver_name == ''?'Belum Ditetapkan':$header->driver_name) : '-' }}"
+                                readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Status</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" value="@php
+                                switch($header->status){
+                                    case 0: echo 'Barang Belum Siap'; break;
+                                    case 1: echo 'Barang Sudah Siap'; break;
+                                    case 2: echo 'Barang Sedang Diantar'; break;
+                                    case 3: echo 'Pesanan Selesai'; break;
+                                    default: echo '-';
+                                }
+                            @endphp
+                            " readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Total Jumlah Barang</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control"
+                                value="{{ $header->total_quantity->total_quantity }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-2">
+                            <label class="form-label">Total Harga</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control"
+                                value="Rp {{ number_format($header->total_amount, 0, ',', '.') }}" readonly>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+            <!-- Detail Produk -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Rincian Barang</h5>
+                </div>
+                <div class="card-body table-responsive">
+                    <table id="datatable" class="table table-striped table-border">
+                        <thead>
+                            <tr class="text-center">
+                                <th style="text-align: center;">No</th>
+                                <th style="text-align: center;">Nama Barang</th>
+                                <th style="text-align: center;">Jumlah</th>
+                                <th style="text-align: center;">Harga Satuan</th>
+                                <th style="text-align: center;">Subtotal</th>
+                                <th style="text-align: center;">Gambar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($detail as $i => $item)
+                            <tr>
+                                <td style="width: 60px;">
+                                    <input type="text" value="{{ $i + 1 }}"
+                                        class="form-control form-control-sm text-center" style="height: 60px; "
+                                        readonly>
+                                </td>
+                                <td>
+                                    <input type="text" value="{{ $item->nama }}" class="form-control form-control-sm"
+                                        style="height: 60px; " readonly>
+                                </td>
+                                <td>
+                                    <input type="text" value="{{ $item->quantity }} {{ ucfirst($item->satuan) }}"
+                                        class="form-control form-control-sm text-right" style="height: 60px; " readonly>
+                                </td>
+                                <td>
+                                    <input type="text"
+                                        value="Rp. {{ number_format($item->harga, 0, ',', '.') }}/{{ $item->satuan }}"
+                                        class="form-control form-control-sm text-right" style="height: 60px; " readonly>
+                                </td>
+                                <td>
+                                    <input type="text" value="Rp. {{ number_format($item->total_price, 0, ',', '.') }}"
+                                        class="form-control form-control-sm text-right" style="height: 60px; " readonly>
+                                </td>
+                                <td class="text-center" style="vertical-align: middle;">
+                                    <img src="{{ asset('img/gambar_produk/' . $item->url) }}" alt="{{ $item->nama }}"
+                                        style="height: 60px; width: 100px; object-fit: fill;">
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+
+        </div>
     </div>
-    <!-- /.content -->
-    @endsection
+</div>
+@endsection

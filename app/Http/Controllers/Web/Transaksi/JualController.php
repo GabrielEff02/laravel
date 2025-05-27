@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 
 use App\Models\Brg;
 use App\Models\BrgDetail;
+use App\Models\Jual;
 use Illuminate\Http\Request;
 use DataTables;
 use Illuminate\Support\Facades\DB;
@@ -38,78 +39,221 @@ class JualController extends Controller
 
     public function getJual(Request $request)
     {
-        // Cek apakah ini request DataTable (pakai parameter draw)
         if (!$request->has('draw')) {
             $columns = [
                 ['data' => 'DT_RowIndex', 'title' => 'No.', 'orderable' => false, 'searchable' => false, 'width' => '20px', 'className' => 'dt-center'],
-                ['data' => 'nama', 'title' => 'Nama Barang', 'width' => '150px'],
-                ['data' => 'category_name', 'title' => 'Kategori', 'searchable' => false, 'width' => '60px'],
-                ['data' => 'total_produk', 'title' => 'Total Produk', 'searchable' => false, 'width' => '80px', 'className' => 'dt-center'],
-                ['data' => 'harga', 'title' => 'Harga', 'width' => '40px', 'className' => 'dt-right'],
-                ['data' => 'satuan', 'title' => 'Satuan', 'width' => '45px'],
-                ['data' => 'deskripsi', 'title' => 'Deskripsi', 'width' => '800px'],
-                ['data' => 'url', 'title' => 'Url', 'width' => '200px'],
+                ['data' => 'name', 'title' => 'Nama Konsumen', 'width' => '150px'],
+                ['data' => 'address', 'title' => 'Alamat Konsumen',  'width' => '60px'],
+                ['data' => 'transaction_date', 'title' => 'Waktu Transaksi', 'width' => '200px', 'className' => 'dt-center'],
+                ['data' => 'compan_name', 'title' => 'Cabang', 'width' => '150px'],
+                ['data' => 'total_amount', 'title' => 'Total Belanja', 'width' => '40px', 'className' => 'dt-right'],
+                ['data' => 'total_quantity', 'title' => 'Total Barang', 'width' => '40px', 'className' => 'dt-center'],
+                ['data' => 'status', 'title' => 'Status', 'width' => '150px', 'className' => 'dt-center'],
+                ['data' => 'is_delivery', 'title' => 'Pengiriman', 'width' => '100px'],
+                ['data' => 'driver_name', 'title' => 'Nama Driver', 'width' => '200px',],
                 ['data' => 'action', 'title' => 'Action', 'orderable' => false, 'searchable' => false, 'width' => '40px', 'className' => 'dt-center'],
             ];
 
             return response()->json(['columns' => $columns]);
         }
 
-        // Kalau ini request datatable (ada draw), baru ambil data
-        $id = DB::table('brg as b')
-            ->join('brgd as bd', 'b.brg_id', '=', 'bd.brg_id')
-            ->join('categories as c', 'b.category_id', '=', 'c.category_id')
+        // Query utama
+        $query = DB::table('jual as j')
+            ->join('users as u', 'u.username', '=', 'j.username')
+            ->join('compan as c', 'c.compan_code', '=', 'j.compan_code')
+            ->leftJoin('drivers as d', 'd.driver_id', '=', 'j.driver_id')
+            ->join('juald as jd', 'jd.transaction_id', '=', 'j.transaction_id')
             ->select(
-                'b.brg_id',
-                'b.nama',
-                'b.harga',
-                'b.satuan',
-                'b.deskripsi',
-                'b.url',
-                'c.category_name',
-                DB::raw('SUM(bd.quantity) as total_produk')
+                'j.transaction_id',
+                'u.name',
+                'j.address',
+                'c.name AS compan_name',
+                'j.total_amount',
+                DB::raw('SUM(jd.quantity) AS total_quantity'),
+                DB::raw("CASE 
+            WHEN j.status = 0 THEN 'Barang Belum Siap' 
+            WHEN j.status = 1 THEN 'Barang Sudah Siap' 
+            WHEN j.status = 2 THEN 'Barang Sedang Diantar' 
+            ELSE 'Pesanan Selesai' 
+            END AS status"),
+                DB::raw("CASE 
+            WHEN j.is_delivery = 1 THEN 'Dikirim' 
+            ELSE 'Tidak Dikirim' 
+            END AS is_delivery"),
+                DB::raw("DATE_FORMAT(j.transaction_date, '%H:%i %d-%m-%Y') AS transaction_date"),
+                DB::raw('IF(j.is_delivery = 1, IF(j.driver_id = 0 OR j.driver_id IS NULL, "Belum Ditetapkan", d.driver_name), "-") AS driver_name')
             )
             ->groupBy(
-                'b.brg_id',
-                'b.nama',
-                'b.harga',
-                'b.satuan',
-                'b.deskripsi',
-                'b.url',
-                'c.category_name'
+                'j.transaction_id',
+                'u.name',
+                'j.address',
+                'c.name',
+                'j.total_amount',
+                'j.status',
+                'j.is_delivery',
+                'j.transaction_date',
+                'j.driver_id',
+                'd.driver_name'
             );
 
-        return Datatables::of($id)
+        return Datatables::of($query)
             ->addIndexColumn()
-            ->editColumn('deskripsi', function ($row) {
-                return $row->deskripsi ?: '<span class="text-muted">-</span>';
+            ->editColumn('total_amount', function ($row) {
+                return number_format($row->total_amount, 0, ',', '.');
+            })
+            ->filter(function ($query) use ($request) {
+                if ($search = $request->input('search.value')) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('u.name', 'like', "%{$search}%")
+                            ->orWhere('j.address', 'like', "%{$search}%")
+                            ->orWhere('c.name', 'like', "%{$search}%")
+                            ->orWhere('d.driver_name', 'like', "%{$search}%")
+                            ->orWhere('j.total_amount', 'like', "%{$search}%")
+                            ->orWhereRaw("(CASE 
+                            WHEN j.is_delivery = 1 THEN 'Dikirim' 
+                            ELSE 'Tidak Dikirim' 
+                            END) LIKE ?", ["%{$search}%"])
+                            ->orWhereRaw("IF(j.driver_id = 0 OR j.driver_id IS NULL, 'Belum Ditetapkan', d.driver_name) LIKE ?", ["%{$search}%"])
+                            ->orWhereRaw("(CASE 
+                            WHEN j.status = 0 THEN 'Barang Belum Siap' 
+                            WHEN j.status = 1 THEN 'Barang Sudah Siap' 
+                            WHEN j.status = 2 THEN 'Barang Sedang Diantar' 
+                            ELSE 'Pesanan Selesai' 
+                            END) LIKE ?", ["%{$search}%"]);
+                    });
+                }
             })
             ->addColumn('action', function ($row) {
                 $btnPrivilege = '
-    <a class="dropdown-item" href="' . url('master/brg/edit/' . $row->brg_id) . '">
-        <i class="fas fa-pen text-primary"></i>&nbsp;&nbsp;&nbsp; Edit
-    </a>
-    <a class="dropdown-item" href="' . url('master/brg/show/' . $row->brg_id) . '">
-        <i class="fas fa-boxes text-success"></i>&nbsp;&nbsp;&nbsp; Edit Stok
-    </a>
-    <hr>
-    <a class="dropdown-item text-danger" onclick="return confirm(\'Apakah anda yakin ingin hapus?\')" href="' . url('master/brg/delete/' . $row->brg_id) . '">
-        <i class="fas fa-trash-alt"></i>&nbsp; Hapus
-    </a>';
-
+        <a class="dropdown-item" href="' . url('transaksi/jual/edit/' . $row->transaction_id) . '">
+            <i class="fas fa-pen text-primary"></i>&nbsp;&nbsp;&nbsp; Edit
+        </a>
+        <a class="dropdown-item" href="' . url('transaksi/jual/show/' . $row->transaction_id) . '">
+            <i class="fas fa-boxes text-success"></i>&nbsp;&nbsp;&nbsp; Edit Stok
+        </a>';
 
                 return '
-                <div class="dropdown show" style="text-align: center">
-                    <a class="btn btn-secondary dropdown-toggle btn-sm" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-bars"></i>
-                    </a>
-                    <div class="dropdown-menu">' . $btnPrivilege . '</div>
-                </div>';
+        <div class="dropdown show" style="text-align: center">
+            <a class="btn btn-secondary dropdown-toggle btn-sm" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </a>
+            <div class="dropdown-menu">' . $btnPrivilege . '</div>
+        </div>';
             })
+            ->setRowAttr([
+                'class' => 'clickable-row',
+                'data-id' => function ($row) {
+                    return $row->transaction_id;
+                }
+            ])
             ->rawColumns(['action'])
             ->make(true);
     }
 
+    public function getJualDriver(Request $request)
+    {
+        if (!$request->has('draw')) {
+            $columns = [
+                ['data' => 'DT_RowIndex', 'title' => 'No.', 'orderable' => false, 'searchable' => false, 'width' => '20px', 'className' => 'dt-center'],
+                ['data' => 'name', 'title' => 'Nama Konsumen', 'width' => '150px'],
+                ['data' => 'address', 'title' => 'Alamat Konsumen',  'width' => '60px'],
+                ['data' => 'compan_name', 'title' => 'Cabang', 'width' => '150px'],
+                ['data' => 'transaction_date', 'title' => 'Waktu Transaksi', 'width' => '200px', 'className' => 'dt-center'],
+                ['data' => 'total_amount', 'title' => 'Total Belanja', 'width' => '40px', 'className' => 'dt-right'],
+                ['data' => 'total_quantity', 'title' => 'Total Barang', 'width' => '40px', 'className' => 'dt-center '],
+                ['data' => 'driver_name', 'title' => 'Nama Driver', 'width' => '200px', 'className' => 'dt-center driver'],
+            ];
+
+            return response()->json(['columns' => $columns]);
+        }
+
+        // Query utama
+        $query = DB::table('jual as j')
+            ->join('users as u', 'u.username', '=', 'j.username')
+            ->join('compan as c', 'c.compan_code', '=', 'j.compan_code')
+            ->leftJoin('drivers as d', 'd.driver_id', '=', 'j.driver_id')
+            ->join('juald as jd', 'jd.transaction_id', '=', 'j.transaction_id')
+
+            ->select(
+                'j.transaction_id',
+                'u.name',
+                'j.address',
+                DB::raw('SUM(jd.quantity) AS total_quantity'),
+                'c.name AS compan_name',
+                'j.total_amount',
+                DB::raw("DATE_FORMAT(j.transaction_date, '%H:%i:%s %d-%m-%Y') AS transaction_date"),
+                DB::raw('IF(j.driver_id = 0 OR j.driver_id IS NULL, "Belum Ditentukan", d.driver_name) AS driver_name')
+            )
+            ->where('j.status', '=', '0')
+            ->where('j.is_delivery', '=', '1')
+            ->groupBy(
+                'j.transaction_id',
+                'u.name',
+                'j.address',
+                'c.name',
+                'j.total_amount',
+                'j.status',
+                'j.is_delivery',
+                'j.transaction_date',
+                'j.driver_id',
+                'd.driver_name'
+            );
+
+        return Datatables::of($query)
+            ->addIndexColumn()
+            ->editColumn('total_amount', function ($row) {
+                return number_format($row->total_amount, 0, ',', '.');
+            })
+            ->editColumn('transaction_id', function ($row) {
+                return '<input type="text" class="form-control transaction_id" required
+                                        id="transaction_id" name="transaction_id"
+                                        >' . $row->transaction_id . '</input>';
+            })
+            ->editColumn('driver_name', function ($row) {
+                $drivers = DB::table('drivers')->select('*')->where('status', '=', '1')->where('manager', '=', '0')->get();
+
+                $html = '<select name="driver[' . $row->transaction_id . ']">';
+                $html .= '<option value="">-- Pilih Nama Driver --</option>';
+
+                foreach ($drivers as $driver) {
+                    $html .= '<option value="' . $driver->driver_id . '">' . $driver->driver_name . '</option>';
+                }
+
+                $html .= '</select>';
+
+                return $html;
+            })
+            ->filter(function ($query) use ($request) {
+                if ($search = $request->input('search.value')) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('u.name', 'like', "%{$search}%")
+                            ->orWhere('j.address', 'like', "%{$search}%")
+                            ->orWhere('c.name', 'like', "%{$search}%")
+                            ->orWhere('d.driver_name', 'like', "%{$search}%")
+                            ->orWhere('j.total_amount', 'like', "%{$search}%")
+                            ->orWhereRaw("(CASE 
+                                WHEN j.is_delivery = 1 THEN 'Dikirim' 
+                                ELSE 'Tidak Dikirim' 
+                                END) LIKE ?", ["%{$search}%"])
+                            ->orWhereRaw("IF(j.driver_id = 0 OR j.driver_id IS NULL, 'Belum Ditentukan', d.driver_name) LIKE ?", ["%{$search}%"])
+                            ->orWhereRaw("(CASE 
+                                WHEN j.status = 0 THEN 'Barang Belum Siap' 
+                                WHEN j.status = 1 THEN 'Barang Sudah Siap' 
+                                WHEN j.status = 2 THEN 'Barang Sedang Diantar' 
+                                ELSE 'Pesanan Selesai' 
+                                END) LIKE ?", ["%{$search}%"]);
+                    });
+                }
+            })
+            ->setRowAttr([
+                'class' => 'clickable-row',
+                'data-id' => function ($row) {
+                    return $row->transaction_id;
+                }
+            ])
+            ->rawColumns(['driver_name'])
+            ->make(true);
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -119,51 +263,7 @@ class JualController extends Controller
     public function create()
     {
 
-
-        $categories = DB::table('categories')
-            ->select('category_id AS value', 'category_name AS label')
-            ->get()
-            ->map(function ($item) {
-                $item->label = ucwords(strtolower(preg_replace_callback(
-                    '/[^\s\-&]+/',
-                    fn($matches) => ucfirst($matches[0]),
-                    $item->label
-                )));
-                return $item;
-            });
-
-        $listCabang = DB::table('compan')
-            ->select('compan_code', 'name')
-            ->get()
-            ->map(function ($item) {
-                $item->name = ucwords(strtolower(preg_replace_callback(
-                    '/[^\s\-&]+/',
-                    fn($matches) => ucfirst($matches[0]),
-                    $item->name
-                )));
-                return $item;
-            });
-
-        $satuan = [
-            ['value' => "buah", 'label' => 'Buah'],
-            ['value' => "ons", 'label' => 'Ons'],
-            ['value' => "kg", 'label' => 'KG'],
-            ['value' => "ikat", 'label' => 'Ikat'],
-            ['value' => "pack", 'label' => 'Pack'],
-            ['value' => "pcs", 'label' => 'Pcs'],
-            ['value' => "box", 'label' => 'Box'],
-            ['value' => "roll", 'label' => 'Roll']
-        ];
-        $form = [
-            ['label' => 'Nama Barang', 'value' => 'nama', 'type' => 'string'],
-            ['label' => 'Harga Barang Rp.', 'value' => 'harga', 'type' => 'number'],
-            ['label' => 'Kategori Barang', 'value' => 'category_id', 'type' => 'selection', 'option' => $categories],
-            ['label' => 'Satuan', 'value' => 'satuan', 'type' => 'selection', 'option' => $satuan],
-            ['label' => 'Deskripsi Barang', 'value' => 'deskripsi', 'type' => 'string'],
-            ['label' => 'Gambar Produk', 'value' => 'url', 'type' => 'image', 'path' => 'img/gambar_produk/'],
-        ];
-        $data = ['forms' => $form, 'listCabang' => $listCabang];
-        return view('transaksi.jual.create', $data);
+        return view('transaksi.jual.create');
     }
 
     /**
@@ -176,58 +276,18 @@ class JualController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama' => 'required|string',
-            'harga' => 'required|string',
-            'category_id' => 'required|exists:categories,category_id',
-            'satuan' => 'required|string',
-            'deskripsi' => 'nullable|string',
-            'compan_code' => 'required|array',
-            'jumlah' => 'required|array',
-        ]);
+        DB::beginTransaction(); // <-- tambahkan ini
 
         try {
-            DB::beginTransaction();
+            $assignedDrivers = collect($request->driver)->filter();
 
-            $nama = ucwords(strtolower($validated['nama']));
-            $harga = str_replace('.', '', $validated['harga']);
-
-            $category = DB::table('categories')
-                ->where('category_id', $validated['category_id'])
-                ->first();
-
-            if (!$category) {
-                throw new \Exception('Kategori tidak ditemukan.');
-            }
-
-            // Format nama folder & file
-            $cleanCategory = str_replace(' ', '_', strtolower($category->category_name));
-            $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($validated['nama']));
-
-            $file = $request->file('url');
-            $extension = $file->getClientOriginalExtension();
-
-            // Simpan file ke public storage
-            $file->storeAs('public/img/gambar_produk/' . $cleanCategory, $cleanProduct . '.' . $extension);
-            // Simpan ke database dengan path relatif
-            $id = new Brg();
-            $id->nama = $nama;
-            $id->harga = $harga;
-            $id->category_id = $validated['category_id'];
-            $id->satuan = $validated['satuan'];
-            $id->deskripsi = $validated['deskripsi'] ?? null;
-            $id->url =  $cleanCategory . '/' . $cleanProduct . '.' . $extension;
-            $id->save();
-            $file->move(public_path('img/gambar_produk/' . $cleanCategory), $cleanProduct . '.' . $extension);
-            foreach ($validated['compan_code'] as $index => $compan_code) {
-                $jumlah = $validated['jumlah'][$index];
-                if (!empty($compan_code) && !empty($jumlah)) {
-                    $detail = new BrgDetail();
-                    $detail->brg_id = $id->brg_id;
-                    $detail->compan_code = $compan_code;
-                    $detail->quantity = $jumlah;
-                    $detail->save();
-                }
+            foreach ($assignedDrivers as $transactionId => $driverId) {
+                DB::table('jual')
+                    ->where('transaction_id', $transactionId)
+                    ->update([
+                        'driver_id' => $driverId,
+                        'status' => 1
+                    ]);
             }
 
             DB::commit();
@@ -235,9 +295,13 @@ class JualController extends Controller
             return redirect()->back()->with('success', 'Data barang berhasil disimpan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with(
+                'error',
+                'Gagal menyimpan data: ' . $e->getMessage()
+            );
         }
     }
+
 
 
 
@@ -252,23 +316,43 @@ class JualController extends Controller
 
     // ganti 12
 
-    public function show(Brg $id)
+    public function show(Jual $id)
     {
+        $name = DB::table('users')
+            ->where('username', $id->username)
+            ->value('name');
+        $phone = DB::table('users')
+            ->where('username', $id->username)
+            ->value('phone');
+        $email = DB::table('users')
+            ->where('username', $id->username)
+            ->value('email');
+        $driver_name = DB::table('drivers')
+            ->where('driver_id', $id->driver_id)
+            ->value('driver_name');
+        $compan_name = DB::table('compan')
+            ->where('compan_code', $id->compan_code)
+            ->value('name');
+        $total_quantity = DB::table('jual as j')
+            ->join('juald as jd', 'j.transaction_id', '=', 'jd.transaction_id')
+            ->where('j.transaction_id', '=', $id->transaction_id)
+            ->select(DB::raw('SUM(jd.quantity) AS total_quantity'))
+            ->first();;
+        $id->phone = $phone;
+        $id->name = $name;
+        $id->email = $email;
+        $id->driver_name = $driver_name;
+        $id->compan_name = $compan_name;
+        $id->total_quantity = $total_quantity;
+        $detailBarang = DB::table('juald as jd')
+            ->join('brg as b', 'b.brg_id', '=', 'jd.brg_id')
+            ->select('jd.*', 'b.nama', 'b.harga', 'b.satuan', 'b.url')
+            ->where('transaction_id', '=', $id->transaction_id)
+            ->get();
 
-        $id_id = $id->brg_id;
-        $idDetail = DB::table('brgd')->where('brg_id', $id_id)->get();
-        $compan = DB::table('compan')->select('name', 'compan_code')->get();
-        $categories = DB::table('categories')
-            ->where('category_id', $id->category_id)
-            ->value('category_name');
+        $data = ['header' => $id, 'detail' => $detailBarang];
+        // return redirect()->back()->with('success', 'Data barang berhasil disimpan.' . json_encode($data));
 
-        // Tambahkan properti baru ke objek $id
-        $id->category_name = $categories;
-        $data = [
-            'header'        => $id,
-            'detail'        => $idDetail,
-            'company'        => $compan,
-        ];
 
         return view('transaksi.jual.show', $data);
     }

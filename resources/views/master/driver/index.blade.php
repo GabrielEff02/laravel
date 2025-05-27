@@ -6,49 +6,49 @@
 @endsection
 
 <style>
-.card-body {
-    padding: 5px 10px !important;
-}
+    .card-body {
+        padding: 5px 10px !important;
+    }
 
-.table thead {
-    background-color: #c6e2ff;
-    color: #000;
-}
+    .table thead {
+        background-color: #c6e2ff;
+        color: #000;
+    }
 
-.datatable tbody td {
-    padding: 5px !important;
-}
+    .datatable tbody td {
+        padding: 5px !important;
+    }
 
-.datatable {
-    border-right: solid 2px #000;
-    border-left: solid 2px #000;
-}
+    .datatable {
+        border-right: solid 2px #000;
+        border-left: solid 2px #000;
+    }
 
-.table tbody:nth-child(2) {
-    background-color: #ffe4e1;
-}
+    .table tbody:nth-child(2) {
+        background-color: #ffe4e1;
+    }
 
-.btn-secondary {
-    background-color: #42047e !important;
-}
+    .btn-secondary {
+        background-color: #42047e !important;
+    }
 
-.table-striped tbody tr:nth-of-type(odd) {
-    background-color: #CFCACAFF !important;
-    /* abu muda */
-}
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #CFCACAFF !important;
+        /* abu muda */
+    }
 
-.table-striped tbody tr:nth-of-type(even) {
-    background-color: #ffffff !important;
-    /* putih */
-}
+    .table-striped tbody tr:nth-of-type(even) {
+        background-color: #ffffff !important;
+        /* putih */
+    }
 
-th {
-    font-size: 13px;
-}
+    th {
+        font-size: 13px;
+    }
 
-td {
-    font-size: 13px;
-}
+    td {
+        font-size: 13px;
+    }
 </style>
 
 @section('content')
@@ -78,14 +78,14 @@ td {
             </div>
             @endif
             <script>
-            setTimeout(() => {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(alert => {
-                    alert.classList.remove('show');
-                    alert.classList.add('fade');
-                    setTimeout(() => alert.remove(), 500);
-                });
-            }, 3000);
+                setTimeout(() => {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        alert.classList.remove('show');
+                        alert.classList.add('fade');
+                        setTimeout(() => alert.remove(), 500);
+                    });
+                }, 3000);
             </script>
             <br>
             <div class="row mb-2">
@@ -105,7 +105,8 @@ td {
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card" style="padding-right:20px !important; padding-left:20px !important;">
+
                         <div class="card-body">
                             <table class="table table-fixed table-striped table-border table-hover nowrap datatable"
                                 id="datatable">
@@ -131,46 +132,46 @@ td {
 
 
 <script>
-$(document).ready(function() {
-    $.ajax({
-        url: "{{ route('master.get-driver') }}",
-        type: "GET",
-        success: function(response) {
-            let thead = '<tr>';
-            response.columns.forEach(col => {
-                thead += `<th style="text-align:center">${col.title}</th>`;
-            });
-            thead += '</tr>';
-            $('#datatable thead').html(thead);
+    $(document).ready(function() {
+        $.ajax({
+            url: "{{ route('master.get-driver') }}",
+            type: "GET",
+            success: function(response) {
+                let thead = '<tr>';
+                response.columns.forEach(col => {
+                    thead += `<th style="text-align:center">${col.title}</th>`;
+                });
+                thead += '</tr>';
+                $('#datatable thead').html(thead);
 
-            $('.datatable').DataTable({
-                processing: true,
-                serverSide: true,
-                scrollX: true,
-                "order": [
-                    [0, "asc"]
-                ],
-                autoWidth: true,
-                ajax: "{{ route('master.get-driver') }}",
-                columns: response.columns,
+                $('.datatable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    scrollX: true,
+                    "order": [
+                        [0, "asc"]
+                    ],
+                    autoWidth: true,
+                    ajax: "{{ route('master.get-driver') }}",
+                    columns: response.columns,
 
-                lengthMenu: [
-                    [5, 10, 20, 50, 100, -1],
-                    [5, 10, 20, 50, 100, "All"]
-                ],
-                dom: "<'row'<'col-md-6'><'col-md-6'>>" +
-                    "<'row'<'col-md-2'l><'col-md-6 test_btn m-auto'><'col-md-4'f>>" +
-                    "<'row'<'col-md-12't>><'row'<'col-md-12'ip>>",
-                stateSave: true
-            });
+                    lengthMenu: [
+                        [5, 10, 20, 50, 100, -1],
+                        [5, 10, 20, 50, 100, "All"]
+                    ],
+                    dom: "<'row'<'col-md-6'><'col-md-6'>>" +
+                        "<'row'<'col-md-2'l><'col-md-6 test_btn m-auto'><'col-md-4'f>>" +
+                        "<'row'<'col-md-12't>><'row'<'col-md-12'ip>>",
+                    stateSave: true
+                });
 
-            $("div.test_btn").html(`
+                $("div.test_btn").html(`
                     <a class="btn btn-lg btn-md btn-success" href="{{ url('master/driver/create') }}">
                         <i class="fas fa-plus fa-sm md-3"></i>
                     </a>
                 `);
-        }
+            }
+        });
     });
-});
 </script>
 @endsection

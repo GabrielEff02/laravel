@@ -105,7 +105,8 @@ td {
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card" style="padding-right:20px !important; padding-left:20px !important;">
+
                         <div class="card-body">
                             <table class="table table-fixed table-striped table-border table-hover nowrap datatable"
                                 id="datatable">
@@ -128,8 +129,6 @@ td {
 @endsection
 
 @section('javascripts')
-
-
 <script>
 $(document).ready(function() {
     $.ajax({
@@ -147,9 +146,7 @@ $(document).ready(function() {
                 processing: true,
                 serverSide: true,
                 scrollX: true,
-                "order": [
-                    [0, "asc"]
-                ],
+
                 autoWidth: true,
                 ajax: "{{ route('transaksi.get-jual') }}",
                 columns: response.columns,
@@ -165,12 +162,16 @@ $(document).ready(function() {
             });
 
             $("div.test_btn").html(`
-                    <a class="btn btn-lg btn-md btn-success" href="{{ url('master/brg/create') }}">
-                        <i class="fas fa-plus fa-sm md-3"></i>
+                    <a class="btn btn-lg btn-md btn-success" href="{{ url('transaksi/jual/create') }}">
+                        Tetapkan Driver
                     </a>
                 `);
         }
     });
+});
+$('#datatable').on('click', '.clickable-row', function() {
+    const id = $(this).data('id');
+    window.location.href = `/transaksi/jual/show/${id}`;
 });
 </script>
 @endsection

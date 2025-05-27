@@ -2,11 +2,11 @@
 
 
 <style>
-.card {}
+    .card {}
 
-.form-control:focus {
-    background-color: #E0FFFF !important;
-}
+    .form-control:focus {
+        background-color: #E0FFFF !important;
+    }
 </style>
 
 
@@ -38,14 +38,14 @@
             </div>
             @endif
             <script>
-            setTimeout(() => {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(alert => {
-                    alert.classList.remove('show');
-                    alert.classList.add('fade');
-                    setTimeout(() => alert.remove(), 500);
-                });
-            }, 3000);
+                setTimeout(() => {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        alert.classList.remove('show');
+                        alert.classList.add('fade');
+                        setTimeout(() => alert.remove(), 500);
+                    });
+                }, 3000);
             </script>
             <br>
             <div class="row mb-2">
@@ -74,15 +74,15 @@
                                 enctype="multipart/form-data">
                                 @csrf
                                 <script>
-                                function formatPrice(input) {
-                                    // Hapus semua kecuali angka
-                                    let value = input.value.replace(/\D/g, '');
+                                    function formatPrice(input) {
+                                        // Hapus semua kecuali angka
+                                        let value = input.value.replace(/\D/g, '');
 
-                                    // Format angka dengan titik ribuan
-                                    let formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                                        // Format angka dengan titik ribuan
+                                        let formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-                                    input.value = formatted;
-                                }
+                                        input.value = formatted;
+                                    }
                                 </script>
                                 @foreach ($forms as $form)
                                 @if($form['type'] == 'selection')
@@ -149,38 +149,35 @@
                                     </div>
                                 </div>
                                 <script>
-                                const fileInput = document.getElementById("{{$form['value']}}");
-                                const previewImage = document.getElementById('preview');
+                                    const fileInput = document.getElementById("{{$form['value']}}");
+                                    const previewImage = document.getElementById('preview');
 
-                                fileInput.addEventListener('change', function() {
-                                    const file = this.files[0];
-                                    if (file) {
+                                    fileInput.addEventListener('change', function() {
+                                        const file = this.files[0];
+                                        if (file) {
 
-                                        // Tampilkan gambar
-                                        const reader = new FileReader();
-                                        reader.onload = function(e) {
-                                            previewImage.src = e.target.result;
-                                            previewImage.style.display = 'block';
-                                        };
-                                        reader.readAsDataURL(file);
-                                    } else {
-                                        fileLabel.textContent = 'Upload Foto';
-                                        previewImage.style.display = 'none';
-                                        previewImage.src = '#';
-                                    }
-                                });
+                                            // Tampilkan gambar
+                                            const reader = new FileReader();
+                                            reader.onload = function(e) {
+                                                previewImage.src = e.target.result;
+                                                previewImage.style.display = 'block';
+                                            };
+                                            reader.readAsDataURL(file);
+                                        } else {
+                                            fileLabel.textContent = 'Upload Foto';
+                                            previewImage.style.display = 'none';
+                                            previewImage.src = '#';
+                                        }
+                                    });
                                 </script>
 
                                 @endif
                                 @endforeach
                                 <div class="form-group row mt-3">
-                                    <div class="col-md-6">
-                                        <button type="submit" class="btn btn-success btn-lg"
-                                            onclick='return confirm("Apakah anda yakin Mengubah Detail Barang?")'>
-
-                                            <i class="fas fa-save me-2"></i> Simpan
-                                        </button>
-                                    </div>
+                                    <div class="col-md-6"></div>
+                                    <button type="submit" class="custom-btn btn-lg btn-confirm-submit">
+                                        <i class="fas fa-save me-2"></i> Simpan
+                                    </button>
                                 </div>
 
                             </form>
@@ -202,9 +199,4 @@
         </div><!-- /.container-fluid -->
     </div>
     <!-- /.content -->
-
-
-
-
-
     @endsection

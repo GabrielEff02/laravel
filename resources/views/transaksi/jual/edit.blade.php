@@ -1,15 +1,55 @@
 @extends('layouts.main')
+@section('styles')
+<!-- <link rel="stylesheet" href="{{url('http://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css') }}"> -->
+<link rel="stylesheet" href="{{asset('foxie_js_css/jquery.dataTables.min.css')}}" />
 
+@endsection
 
 <style>
-.card {}
+.card-body {
+    padding: 5px 10px !important;
+}
 
-.form-control:focus {
-    background-color: #E0FFFF !important;
+.table thead {
+    background-color: #c6e2ff;
+    color: #000;
+}
+
+.datatable tbody td {
+    padding: 5px !important;
+}
+
+.datatable {
+    border-right: solid 2px #000;
+    border-left: solid 2px #000;
+}
+
+.table tbody:nth-child(2) {
+    background-color: #ffe4e1;
+}
+
+.btn-secondary {
+    background-color: #42047e !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #CFCACAFF !important;
+    /* abu muda */
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+    background-color: #ffffff !important;
+    /* putih */
+}
+
+th {
+    font-size: 13px;
+}
+
+td {
+    font-size: 13px;
 }
 </style>
-
-
 
 @section('content')
 <div class="content-wrapper">
@@ -47,153 +87,112 @@
                 });
             }, 3000);
             </script>
+            <a href="{{ $this->aksi() }}" class="btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            {{ json_encode(session('back_urls', [])) }}
+
+            <br>
             <br>
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">{{$data->nama}}</h1>
+                    <h1 class="m-0">Tetapkan Driver</h1>
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{url('master/brg')}}">List Barang</a></li>
-                        <li class="breadcrumb-item active">{{$data->nama}}</li>
+                        <li class="breadcrumb-item"><a href="{{url('/transaksi/jual')}}">Penjualan Barang</a></li>
+                        <li class="breadcrumb-item active">Tetapkan Driver</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
         </div><!-- /.container-fluid -->
     </div>
-    <!-- /.content-header -->
+    <!-- Status -->
 
+    </script>
+    <!-- Main content -->
     <div class="content">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <form action="{{ url('master/brg/update/'.$data->primaryKey) }}" id="entri" method="POST"
-                                enctype="multipart/form-data">
-                                @csrf
-                                <script>
-                                function formatPrice(input) {
-                                    // Hapus semua kecuali angka
-                                    let value = input.value.replace(/\D/g, '');
+                    <div class="card" style="padding-right:30px !important; padding-left:30px !important;">
+                        <form action={{url('/transaksi/jual/update')}} id="entri" method="POST">
+                            @csrf
+                            <table class="table table-fixed table-striped table-border table-hover nowrap datatable"
+                                id="datatable">
+                                <thead class=" table-dark">
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
 
-                                    // Format angka dengan titik ribuan
-                                    let formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-                                    input.value = formatted;
-                                }
-                                </script>
-                                @foreach ($forms as $form)
-                                @if($form['type'] == 'selection')
-                                <div class="form-group row mt-2">
-                                    <div class="col-md-2">
-                                        <label for="{{ $form['value'] }}"
-                                            class="form-label">{{ $form['label'] }}</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <select name="{{ $form['value'] }}" class="form-control" required>
-                                            <option value="">-- Pilih {{ $form['label'] }} --</option>
-                                            @foreach($form['option'] as $option)
-                                            <option value="{{ is_array($option) ? $option['value'] : $option->value }}"
-                                                {{ $data->{is_array($form) ? $form['value'] : $form->value} == (is_array($option) ? $option['value'] : $option->value) ? 'selected' : '' }}>
-                                                {{ is_array($option) ? $option['label'] : $option->label }}
-                                            </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                @elseif($form['type'] == 'string')
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" class="form-control {{$form['value']}}" required
-                                            id="{{$form['value']}}" name="{{$form['value']}}"
-                                            placeholder="Masukkan {{$form['label']}}"
-                                            value="{{ $data->{is_array($form) ? $form['value'] : $form->value} }}">
-                                    </div>
-                                </div>
-                                @elseif($form['type'] == 'number')
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" class="form-control {{$form['value']}}" required
-                                            oninput="formatPrice(this)" id="{{$form['value']}}"
-                                            name="{{$form['value']}}" placeholder="Masukkan {{$form['label']}}"
-                                            value="{{ $data->{is_array(value: $form) ? $form['value'] : $form->value} }}">
-                                    </div>
-                                </div>
-                                @elseif($form['type'] == 'image')
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="file" name="{{$form['value']}}"
-                                            class="form-control {{$form['value']}}" id='{{$form['value']}}'
-                                            accept=".jpeg, .jpg, .png">
-                                    </div>
-                                </div>
-                                <div class="form-group row mt-2">
-                                    <div class="col-md-2">
-                                        <label for="imageNow" class="form-label">Gambar Saat Ini</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <img src="{{ asset($form['path'].$data->{is_array(value: $form) ? $form['value'] : $form->value}) }}"
-                                            id="preview" alt="Gambar Barang" style="max-width:150px; margin-top:5px;">
-                                    </div>
-                                </div>
-                                <script>
-                                const fileInput = document.getElementById("{{$form['value']}}");
-                                const previewImage = document.getElementById('preview');
-
-                                fileInput.addEventListener('change', function() {
-                                    const file = this.files[0];
-                                    if (file) {
-
-                                        // Tampilkan gambar
-                                        const reader = new FileReader();
-                                        reader.onload = function(e) {
-                                            previewImage.src = e.target.result;
-                                            previewImage.style.display = 'block';
-                                        };
-                                        reader.readAsDataURL(file);
-                                    } else {
-                                        fileLabel.textContent = 'Upload Foto';
-                                        previewImage.style.display = 'none';
-                                        previewImage.src = '#';
-                                    }
-                                });
-                                </script>
-
-                                @endif
-                                @endforeach
-                                <div class="form-group row mt-3">
-                                    <div class="col-md-6"></div>
-                                    <button type="submit" class="custom-btn btn-lg btn-confirm-submit">
-                                        <i class="fas fa-save me-2"></i> Simpan
-                                    </button>
-                                </div>
-                            </form>
-
-
-
-                        </div>
+                            <div class="form-group row mt-3">
+                                <div class="col-md-6"></div>
+                                <button type="submit" class="custom-btn btn-lg btn-confirm-submit">
+                                    <i class="fas fa-save me-2"></i> Simpan
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <!-- /.card -->
                 </div>
             </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+            <!-- /.card -->
+        </div>
     </div>
-    <!-- /.content -->
+    <!-- /.row -->
+</div><!-- /.container-fluid -->
+</div>
+<!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+@endsection
+
+@section('javascripts')
 
 
+<script>
+$('#datatable').on('click', '.clickable-row', function(e) {
+    if (!$(e.target).is('input[type="checkbox"]')) {
+        const id = $(this).data('id');
+        window.location.href = `/transaksi/jual/show/${id}`;
+    }
+});
+
+$('#datatable').on('change', '#checkAll', function() {
+    $('.row-checkbox').prop('checked', this.checked);
+});
 
 
+$(document).ready(function() {
+    $.ajax({
+        url: "{{ route('transaksi.get-jual-ambil') }}",
+        type: "GET",
+        success: function(response) {
+            let thead = '<tr>';
+            response.columns.forEach(col => {
+                thead += `<th style="text-align:center">${col.title}</th>`;
+            });
+            thead += '</tr>';
+            $('#datatable thead').html(thead);
 
-    @endsection
+            $('.datatable').DataTable({
+                processing: true,
+                serverSide: true,
+                // scrollX: true,
+
+                autoWidth: true,
+                ajax: "{{ route('transaksi.get-jual-ambil') }}",
+                columns: response.columns,
+                paging: false,
+
+                dom: "<'row'<'col-md-6'><'col-md-6'>>" +
+                    "<'row'<'col-md-2'l><'col-md-6 test_btn m-auto'><'col-md-4'f>>" +
+                    "<'row'<'col-md-12't>><'row'<'col-md-12'ip>>",
+                stateSave: true
+            });
+        }
+    });
+});
+</script>
+@endsection

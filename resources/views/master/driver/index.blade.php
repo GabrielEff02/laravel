@@ -166,7 +166,7 @@
                 });
 
                 $("div.test_btn").html(`
-                    <a class="btn btn-lg btn-md btn-success" href="{{ url('master/driver/create') }}">
+                    <a class="btn btn-lg btn-md custom-btn" href="{{ url('master/driver/create') }}">
                         <i class="fas fa-plus fa-sm md-3"></i>
                     </a>
                 `);

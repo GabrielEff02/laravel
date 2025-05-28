@@ -47,6 +47,10 @@
                     });
                 }, 3000);
             </script>
+            <a href="{{ $backUrl }}" class="btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <br>
             <br>
             <div class="row mb-2">
                 <div class="col-sm-6">

@@ -1,15 +1,18 @@
 @extends('layouts.main')
 
-
 <style>
 .card {}
 
 .form-control:focus {
     background-color: #E0FFFF !important;
 }
+
+#preview {
+    margin-top: 15px;
+    max-height: 150px;
+    border-radius: 8px;
+}
 </style>
-
-
 
 @section('content')
 <div class="content-wrapper">
@@ -55,13 +58,13 @@
             <br>
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Edit Driver {{$data->nama}}</h1>
+                    <h1 class="m-0">Tambah Satuan</h1>
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{url('/master/driver')}}">List Driver</a></li>
-                        <li class="breadcrumb-item active">Edit {{$data->nama}}</li>
+                        <li class="breadcrumb-item"><a href="{{url('master/satuan')}}">List Satuan</a></li>
+                        <li class="breadcrumb-item active">Add</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -75,9 +78,11 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <form action="{{ url('master/driver/update/'.$data->primaryKey) }}" id="entri" method="POST"
+                            <form action="{{ url('master/satuan/store') }}" id="entri" method="POST"
                                 enctype="multipart/form-data">
+
                                 @csrf
+
                                 <script>
                                 function formatPrice(input) {
                                     // Hapus semua kecuali angka
@@ -100,10 +105,11 @@
                                         <select name="{{ $form['value'] }}" class="form-control" required>
                                             <option value="">-- Pilih {{ $form['label'] }} --</option>
                                             @foreach($form['option'] as $option)
-                                            <option value="{{ is_array($option) ? $option['value'] : $option->value }}"
-                                                {{ $data->{is_array($form) ? $form['value'] : $form->value} == (is_array($option) ? $option['value'] : $option->value) ? 'selected' : '' }}>
-                                                {{ is_array($option) ? $option['label'] : $option->label }}
-                                            </option>
+                                            @php
+                                            $value = is_array($option) ? $option['value'] : $option->value;
+                                            $label = is_array($option) ? $option['label'] : $option->label;
+                                            @endphp
+                                            <option value="{{ $value }}">{{ $label }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -115,10 +121,8 @@
                                     </div>
                                     <div class="col-md-4">
                                         <input type="text" class="form-control {{$form['value']}}" required
-                                            {{ !empty($form['readonly']) && $form['readonly'] ? 'readonly' : '' }}
                                             id="{{$form['value']}}" name="{{$form['value']}}"
-                                            placeholder="Masukkan {{$form['label']}}"
-                                            value="{{ $data->{is_array($form) ? $form['value'] : $form->value} }}">
+                                            placeholder="Masukkan {{$form['label']}}">
                                     </div>
                                 </div>
                                 @elseif($form['type'] == 'number')
@@ -129,8 +133,7 @@
                                     <div class="col-md-4">
                                         <input type="text" class="form-control {{$form['value']}}" required
                                             oninput="formatPrice(this)" id="{{$form['value']}}"
-                                            name="{{$form['value']}}" placeholder="Masukkan {{$form['label']}}"
-                                            value="{{ $data->{is_array(value: $form) ? $form['value'] : $form->value} }}">
+                                            name="{{$form['value']}}" placeholder="Masukkan {{$form['label']}}">
                                     </div>
                                 </div>
                                 @elseif($form['type'] == 'image')
@@ -144,17 +147,15 @@
                                             accept=".jpeg, .jpg, .png">
                                     </div>
                                 </div>
-                                <div class="form-group row mt-2">
+                                <div class="form-group row">
                                     <div class="col-md-2">
-                                        <label for="imageNow" class="form-label">Gambar Saat Ini</label>
                                     </div>
                                     <div class="col-md-4">
-                                        <img src="{{ asset($form['path'].$data->{is_array(value: $form) ? $form['value'] : $form->value}) }}"
-                                            id="preview" alt="Gambar Barang" style="max-width:150px; margin-top:5px;">
+                                        <img id="preview" src="#" alt="Preview" style="display: none;" />
                                     </div>
                                 </div>
                                 <script>
-                                const fileInput = document.getElementById("{{$form['value']}}");
+                                const fileInput = document.getElementById("{{ $form['value'] }}");
                                 const previewImage = document.getElementById('preview');
 
                                 fileInput.addEventListener('change', function() {
@@ -175,33 +176,78 @@
                                     }
                                 });
                                 </script>
-
+                                @elseif($form['type'] == 'password')
+                                <div class="form-group row">
+                                    <div class="col-md-2">
+                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="password" class="form-control {{$form['value']}}" required
+                                            id="{{$form['value']}}" name="{{$form['value']}}"
+                                            placeholder="Masukkan {{$form['label']}}">
+                                        <span class="position-absolute"
+                                            style="top: 50%; right: 25px; transform: translateY(-50%); cursor: pointer;"
+                                            onclick="togglePassword(`{{ $form['value'] }}`, this)">
+                                            <i class="fas fa-eye"></i>
+                                        </span>
+                                    </div>
+                                </div>
                                 @endif
                                 @endforeach
+                                <script>
+                                function togglePassword(id, el) {
+                                    const input = document.getElementById(id);
+                                    const icon = el.querySelector('i');
+
+                                    if (input.type === "password") {
+                                        input.type = "text";
+                                        icon.classList.remove('fa-eye');
+                                        icon.classList.add('fa-eye-slash');
+                                    } else {
+                                        input.type = "password";
+                                        icon.classList.remove('fa-eye-slash');
+                                        icon.classList.add('fa-eye');
+                                    }
+                                }
+                                </script>
+
+
+
+
+
                                 <div class="form-group row mt-3">
                                     <div class="col-md-6"></div>
                                     <button type="submit" class="custom-btn btn-lg btn-confirm-submit">
                                         <i class="fas fa-save me-2"></i> Simpan
                                     </button>
                                 </div>
-
-                            </form>
-                            <div class="form-group row mt-2">
-                                <div class="col-md-6">
-                                    <a href="{{ route('master/driver/resetPassword', $data->primaryKey) }}"
-                                        class="btn btn-warning "
-                                        onclick="return confirm('Yakin ingin mereset password driver ini ke default (drivertiara)?')">
-                                        <i class="fas fa-key"></i> Reset Password
-                                    </a>
-                                </div>
-                            </div>
                         </div>
+                        </form>
                     </div>
-                    <!-- /.card -->
                 </div>
             </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content -->
-    @endsection
+        </div>
+        <!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+<!-- /.content -->
+
+
+
+@endsection
+
+@section('footer-scripts')
+<!-- TAMBAH 1 -->
+<script src="{{ asset('js/autoNumerics/autoNumeric.min.js') }}"></script>
+<!--       <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script> -->
+<script src="{{asset('foxie_js_css/bootstrap.bundle.min.js')}}"></script>
+<script>
+$(document).ready(function() {
+    $('body').on('click', '.btn-delete', function() {
+        var val = $(this).parents("tr").remove();
+        baris--;
+        nomor();
+    });
+});
+</script>
+@endsection

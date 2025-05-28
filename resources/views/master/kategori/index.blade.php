@@ -87,11 +87,10 @@ td {
                 });
             }, 3000);
             </script>
-            {{ json_encode(session('back_urls', [])) }}
             <br>
             <div class="row mb-2">
                 <div class="col-sm-12">
-                    <b class="m-0" style="font-size: 14pt;">List Transaksi Penjualan Barang </b>
+                    <b class="m-0" style="font-size: 14pt;">List Kategori</b>
                 </div>
                 <!-- /.col -->
             </div><!-- /.row -->
@@ -108,7 +107,7 @@ td {
                 <div class="col-12">
                     <div class="card" style="padding-right:20px !important; padding-left:20px !important;">
 
-                        <div class="card-body"><br>
+                        <div class="card-body">
                             <table class="table table-fixed table-striped table-border table-hover nowrap datatable"
                                 id="datatable">
                                 <thead class=" table-dark">
@@ -116,15 +115,7 @@ td {
                                 <tbody>
                                 </tbody>
                             </table>
-                            <a class="btn btn-lg btn-md custom-btn  mt-1 mb-4 mr-4"
-                                href="{{ url('transaksi/jual/create') }}">
-                                Tetapkan Driver
-                            </a></a><a class="btn btn-lg btn-md custom-btn mt-1 mb-4"
-                                href="{{ url('transaksi/jual/edit') }}">
-                                Ubah Status
-                            </a>
                         </div>
-
                     </div>
                     <!-- /.card -->
                 </div>
@@ -138,10 +129,12 @@ td {
 @endsection
 
 @section('javascripts')
+
+
 <script>
 $(document).ready(function() {
     $.ajax({
-        url: "{{ route('transaksi.get-jual') }}",
+        url: "{{ route('master.get-kategori') }}",
         type: "GET",
         success: function(response) {
             let thead = '<tr>';
@@ -154,10 +147,8 @@ $(document).ready(function() {
             $('.datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                scrollX: true,
-
                 autoWidth: true,
-                ajax: "{{ route('transaksi.get-jual') }}",
+                ajax: "{{ route('master.get-kategori') }}",
                 columns: response.columns,
 
                 lengthMenu: [
@@ -165,16 +156,18 @@ $(document).ready(function() {
                     [5, 10, 20, 50, 100, "All"]
                 ],
                 dom: "<'row'<'col-md-6'><'col-md-6'>>" +
-                    "<'row'<'col-md-2'l><'col-md-6'><'col-md-4'f>>" +
+                    "<'row'<'col-md-2'l><'col-md-6 test_btn m-auto'><'col-md-4'f>>" +
                     "<'row'<'col-md-12't>><'row'<'col-md-12'ip>>",
                 stateSave: true
             });
+
+            $("div.test_btn").html(`
+                    <a class="btn custom-btn btn-lg btn-md btn-success" href="{{ url('master/kategori/create') }}">
+                        <i class="fas fa-plus fa-sm md-3"></i>
+                    </a>
+                `);
         }
     });
-});
-$('#datatable').on('click', '.clickable-row', function() {
-    const id = $(this).data('id');
-    window.location.href = `/transaksi/jual/show/${id}`;
 });
 </script>
 @endsection

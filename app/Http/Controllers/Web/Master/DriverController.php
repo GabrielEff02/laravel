@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 // ganti 1
 
 use App\Models\Driver;
-use App\Models\DriverDetail;
 use Illuminate\Http\Request;
 use DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 
 
@@ -23,6 +23,39 @@ use PHPJasperXML;
 // ganti 2
 class DriverController extends Controller
 {
+    private function pushToBackStack(array $skipPatterns = [])
+    {
+        $backUrls = session('back_urls', []);
+        $current = url()->current();
+        $prev = url()->previous();
+
+        // Default skip patterns kalau kosong
+        if (empty($skipPatterns)) {
+            $skipPatterns = [];
+        }
+
+        if (empty($backUrls)) {
+            $backUrls[] = $prev;
+            $backUrls[] = $current;
+        } else {
+            $backUrls[] =  $current;
+        }
+    }
+    private function popBackStack()
+    {
+        $backUrls = session('back_urls', []);
+
+
+        array_pop($backUrls);
+
+        // Ambil URL sebelumnya atau fallback ke route default
+        $previous = array_pop($backUrls);
+        $backUrls[] = $previous;
+
+        session(['back_urls' => $backUrls]);
+
+        return $previous;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -30,6 +63,7 @@ class DriverController extends Controller
      */
     public function index()
     {
+        $this->pushToBackStack();
 
         // ganti 3
         return view('master.driver.index');
@@ -122,6 +156,7 @@ class DriverController extends Controller
      */
     public function create()
     {
+        $this->pushToBackStack(['/master/driver/create', '/master/driver/store']);
         $form = [
             ['label' => 'Username', 'value' => 'username', 'type' => 'string'],
             ['label' => 'Nama Driver', 'value' => 'name', 'type' => 'string'],
@@ -135,7 +170,7 @@ class DriverController extends Controller
 
         ];
 
-        return view('master.driver.create', ['forms' => $form]);
+        return view('master.driver.create', ['backUrl' => $this->popBackStack(), 'forms' => $form]);
     }
 
     /**
@@ -210,6 +245,7 @@ class DriverController extends Controller
 
     public function edit(Driver $id)
     {
+        $this->pushToBackStack(skipPatterns: ['/master/driver/edit', '/master/driver/update']);
         $form = [
             ['label' => 'Username', 'value' => 'username', 'type' => 'string', 'readonly' => true],
             ['label' => 'Nama Driver', 'value' => 'driver_name', 'type' => 'string'],
@@ -221,7 +257,7 @@ class DriverController extends Controller
 
         ];
         $id['primaryKey'] = $id['driver_id'];
-        return view('master.driver.edit', ['data' => $id, 'forms' => $form]);
+        return view('master.driver.edit', ['data' => $id, 'backUrl' => $this->popBackStack(), 'forms' => $form]);
     }
 
     /**
@@ -275,7 +311,12 @@ class DriverController extends Controller
      * @param  \App\Models\Master\Rute  $rute
      * @return \Illuminate\Http\Response
      */
+    public function show(Driver $id)
+    {
+        $this->pushToBackStack(['/master/driver/show']);
 
+        return view('master.driver.show', ['backUrl' => $this->popBackStack(), 'data' => $id, 'forms' => $form]);
+    }
     // ganti 22
 
     public function destroy($username)

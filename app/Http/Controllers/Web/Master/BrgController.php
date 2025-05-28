@@ -10,6 +10,7 @@ use App\Models\BrgDetail;
 use Illuminate\Http\Request;
 use DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 
 
@@ -27,9 +28,44 @@ class BrgController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private function pushToBackStack(array $skipPatterns = [])
+    {
+        $backUrls = session('back_urls', []);
+        $current = url()->current();
+        $prev = url()->previous();
+
+        // Default skip patterns kalau kosong
+        if (empty($skipPatterns)) {
+            $skipPatterns = [];
+        }
+
+        if (empty($backUrls)) {
+            $backUrls[] = $prev;
+            $backUrls[] = $current;
+        } else {
+            $backUrls[] =  $current;
+        }
+        session(['back_urls' => $backUrls]);
+    }
+    private function popBackStack()
+    {
+        $backUrls = session('back_urls', []);
+
+
+        array_pop($backUrls);
+
+        // Ambil URL sebelumnya atau fallback ke route default
+        $previous = array_pop($backUrls);
+        $backUrls[] = $previous;
+
+        session(['back_urls' => $backUrls]);
+
+        return $previous;
+    }
+
     public function index()
     {
-
+        $this->pushToBackStack();
         // ganti 3
         return view('master.brg.index');
     }
@@ -59,11 +95,12 @@ class BrgController extends Controller
         $id = DB::table('brg as b')
             ->join('brgd as bd', 'b.brg_id', '=', 'bd.brg_id')
             ->join('categories as c', 'b.category_id', '=', 'c.category_id')
+            ->join('satuan as s', 's.id', '=', 'b.satuan')
             ->select(
                 'b.brg_id',
                 'b.nama',
                 'b.harga',
-                'b.satuan',
+                's.nama as satuan',
                 'b.deskripsi',
                 'b.url',
                 'c.category_name',
@@ -73,7 +110,7 @@ class BrgController extends Controller
                 'b.brg_id',
                 'b.nama',
                 'b.harga',
-                'b.satuan',
+                's.nama',
                 'b.deskripsi',
                 'b.url',
                 'c.category_name'
@@ -92,7 +129,7 @@ class BrgController extends Controller
                         $query->where(function ($q) use ($search) {
                             $q->where('b.nama', 'like', "%{$search}%")
                                 ->orWhere('b.harga', 'like', "%{$search}%")
-                                ->orWhere('b.satuan', 'like', "%{$search}%")
+                                ->orWhere('s.satuan', 'like', "%{$search}%")
                                 ->orWhere('b.deskripsi', 'like', "%{$search}%")
                                 ->orWhere('b.url', 'like', "%{$search}%")
                                 ->orWhere('c.category_name', 'like', "%{$search}%");
@@ -137,6 +174,7 @@ class BrgController extends Controller
      */
     public function create()
     {
+        $this->pushToBackStack(['/master/brg/create', '/master/brg/store']);
 
 
         $categories = DB::table('categories')
@@ -162,17 +200,10 @@ class BrgController extends Controller
                 )));
                 return $item;
             });
+        $satuan = DB::table('satuan')
+            ->select('id AS value', 'nama AS label')
+            ->get();
 
-        $satuan = [
-            ['value' => "buah", 'label' => 'Buah'],
-            ['value' => "ons", 'label' => 'Ons'],
-            ['value' => "kg", 'label' => 'KG'],
-            ['value' => "ikat", 'label' => 'Ikat'],
-            ['value' => "pack", 'label' => 'Pack'],
-            ['value' => "pcs", 'label' => 'Pcs'],
-            ['value' => "box", 'label' => 'Box'],
-            ['value' => "roll", 'label' => 'Roll']
-        ];
         $form = [
             ['label' => 'Nama Barang', 'value' => 'nama', 'type' => 'string'],
             ['label' => 'Harga Barang Rp.', 'value' => 'harga', 'type' => 'number'],
@@ -181,7 +212,7 @@ class BrgController extends Controller
             ['label' => 'Deskripsi Barang', 'value' => 'deskripsi', 'type' => 'string'],
             ['label' => 'Gambar Produk', 'value' => 'url', 'type' => 'image', 'path' => 'img/gambar_produk/'],
         ];
-        $data = ['forms' => $form, 'listCabang' => $listCabang];
+        $data = ['forms' => $form, 'listCabang' => $listCabang, 'backUrl' => $this->popBackStack()];
         return view('master.brg.create', $data);
     }
 
@@ -203,6 +234,7 @@ class BrgController extends Controller
             'deskripsi' => 'nullable|string',
             'compan_code' => 'required|array',
             'jumlah' => 'required|array',
+            'url' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Validasi gambar opsional
         ]);
 
         try {
@@ -223,21 +255,31 @@ class BrgController extends Controller
             $cleanCategory = str_replace(' ', '_', strtolower($category->category_name));
             $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($validated['nama']));
 
+            $imagePath = null;
             $file = $request->file('url');
-            $extension = $file->getClientOriginalExtension();
+            if ($file) {
+                $extension = $file->getClientOriginalExtension();
+                $fileName = $cleanProduct . '.' . $extension;
 
-            // Simpan file ke public storage
-            $file->storeAs('public/img/gambar_produk/' . $cleanCategory, $cleanProduct . '.' . $extension);
-            // Simpan ke database dengan path relatif
+                // Simpan file ke storage Laravel dan ke folder public
+                $file->storeAs('public/img/gambar_produk/' . $cleanCategory, $fileName);
+                $file->move(public_path('img/gambar_produk/' . $cleanCategory), $fileName);
+
+                // Simpan path relatif
+                $imagePath = $cleanCategory . '/' . $fileName;
+            }
+
+            // Simpan data utama ke tabel brg
             $id = new Brg();
             $id->nama = $nama;
             $id->harga = $harga;
             $id->category_id = $validated['category_id'];
             $id->satuan = $validated['satuan'];
             $id->deskripsi = $validated['deskripsi'] ?? null;
-            $id->url =  $cleanCategory . '/' . $cleanProduct . '.' . $extension;
+            $id->url = $imagePath; // null jika tidak upload gambar
             $id->save();
-            $file->move(public_path('img/gambar_produk/' . $cleanCategory), $cleanProduct . '.' . $extension);
+
+            // Simpan data ke tabel detail distribusi barang
             foreach ($validated['compan_code'] as $index => $compan_code) {
                 $jumlah = $validated['jumlah'][$index];
                 if (!empty($compan_code) && !empty($jumlah)) {
@@ -258,10 +300,6 @@ class BrgController extends Controller
         }
     }
 
-
-
-
-
     /**
      * Display the specified resource.
      *
@@ -273,19 +311,26 @@ class BrgController extends Controller
 
     public function show(Brg $id)
     {
+        $this->pushToBackStack(['/master/brg/show', '/master/brg/storeBrgd']);
+
 
         $idDetail = DB::table('brgd')->where('brg_id', $id->brg_id)->get();
         $compan = DB::table('compan')->select('name', 'compan_code')->get();
         $categories = DB::table('categories')
             ->where('category_id', $id->category_id)
             ->value('category_name');
+        $satuan = DB::table('satuan')
+            ->where('id', $id->satuan)
+            ->value('nama');
 
         // Tambahkan properti baru ke objek $id
         $id->category_name = $categories;
+        $id->satuan = $satuan;
         $data = [
             'header'        => $id,
             'detail'        => $idDetail,
             'company'        => $compan,
+            'backUrl' => $this->popBackStack(),
         ];
 
         return view('master.brg.show', $data);
@@ -302,6 +347,8 @@ class BrgController extends Controller
 
     public function edit(Brg $id)
     {
+        $this->pushToBackStack(skipPatterns: ['/master/brg/edit', '/master/brg/update']);
+
         $categories = DB::table('categories')
             ->select('category_id AS value', 'category_name AS label')
             ->get()
@@ -314,16 +361,9 @@ class BrgController extends Controller
                 return $item;
             });
 
-        $satuan = [
-            ['value' => "buah", 'label' => 'Buah'],
-            ['value' => "ons", 'label' => 'Ons'],
-            ['value' => "kg", 'label' => 'KG'],
-            ['value' => "ikat", 'label' => 'Ikat'],
-            ['value' => "pack", 'label' => 'Pack'],
-            ['value' => "pcs", 'label' => 'Pcs'],
-            ['value' => "box", 'label' => 'Box'],
-            ['value' => "roll", 'label' => 'Roll']
-        ];
+        $satuan = DB::table('satuan')
+            ->select('id AS value', 'nama AS label')
+            ->get();
         $form = [
             ['label' => 'Nama Barang', 'value' => 'nama', 'type' => 'string'],
             ['label' => 'Harga Barang Rp.', 'value' => 'harga', 'type' => 'number'],
@@ -337,6 +377,7 @@ class BrgController extends Controller
         $data = [
             'data'        => $id,
             'forms'        => $form,
+            'backUrl' => $this->popBackStack(),
         ];
         return view('master.brg.edit', $data);
     }
@@ -369,7 +410,6 @@ class BrgController extends Controller
         try {
             $harga = (int) str_replace('.', '', $request->harga);
 
-            // Ambil nama kategori
             $category = DB::table('categories')->where('category_id', $request->category_id)->first();
             if (!$category) {
                 throw new \Exception("Kategori tidak ditemukan.");

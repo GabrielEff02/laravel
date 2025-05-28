@@ -1,27 +1,33 @@
 @extends('layouts.main')
 <style>
-    .custom {
-        background-color: #F7D8B4 !important;
-        border: 1px solid #ced4da !important;
-    }
+.custom {
+    background-color: #F7D8B4 !important;
+    border: 1px solid #ced4da !important;
+}
 
-    .form-control {
-        font-size: 16px !important;
-        font-weight: bold !important;
-    }
+.form-control {
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
 </style>
 @section('content')
 <div class="content-wrapper">
     <div class="content-header">
         <div class="container-fluid">
+            <a href="{{ $backUrl }}" class="btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            {{ json_encode(session('back_urls', [])) }}
+
+            <br>
             <br>
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Detail Transaksi #{{ $header->transaction_id }}</h1>
+                    <h1 class="m-2">Detail Transaksi #{{ $header->transaction_id }}</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('transaksi') }}">Transaksi</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url('transaksi/jual') }}">Transaksi</a></li>
                         <li class="breadcrumb-item active">Detail</li>
                     </ol>
                 </div>

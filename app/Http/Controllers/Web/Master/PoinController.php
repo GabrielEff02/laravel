@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use DataTables;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 
 
@@ -23,6 +24,39 @@ use PHPJasperXML;
 // ganti 2
 class PoinController extends Controller
 {
+    private function pushToBackStack(array $skipPatterns = [])
+    {
+        $backUrls = session('back_urls', []);
+        $current = url()->current();
+        $prev = url()->previous();
+
+        // Default skip patterns kalau kosong
+        if (empty($skipPatterns)) {
+            $skipPatterns = [];
+        }
+
+        if (empty($backUrls)) {
+            $backUrls[] = $prev;
+            $backUrls[] = $current;
+        } else {
+            $backUrls[] =  $current;
+        }
+    }
+    private function popBackStack()
+    {
+        $backUrls = session('back_urls', []);
+
+
+        array_pop($backUrls);
+
+        // Ambil URL sebelumnya atau fallback ke route default
+        $previous = array_pop($backUrls);
+        $backUrls[] = $previous;
+
+        session(['back_urls' => $backUrls]);
+
+        return $previous;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -30,6 +64,7 @@ class PoinController extends Controller
      */
     public function index()
     {
+        $this->pushToBackStack();
 
         // ganti 3
         return view('master.poin.index');
@@ -47,7 +82,7 @@ class PoinController extends Controller
                 ['data' => 'product_name', 'title' => 'Nama Produk', 'width' => '150px'],
                 ['data' => 'total_produk', 'title' => 'Total Produk', 'width' => '80px', 'className' => 'dt-right'],
                 ['data' => 'price', 'title' => 'Harga', 'width' => '40px', 'className' => 'dt-center'],
-                ['data' => 'product_description', 'title' => 'Deskripsi', 'width' => '800px',],
+                ['data' => 'product_description', 'title' => 'Deskripsi', 'width' => '400px',],
                 ['data' => 'image_url', 'title' => 'Url', 'width' => '200px'],
                 ['data' => 'action', 'title' => 'Action', 'orderable' => false, 'searchable' => false, 'className' => 'dt-center', 'width' => '40px'],
             ];
@@ -129,6 +164,7 @@ class PoinController extends Controller
      */
     public function create()
     {
+        $this->pushToBackStack(['/master/poin/create', '/master/poin/store']);
 
         $listCabang = DB::table('compan')
             ->select('compan_code', 'name')
@@ -150,7 +186,7 @@ class PoinController extends Controller
         ];
 
 
-        $data = ['forms' => $form, 'listCabang' => $listCabang];
+        $data = ['backUrl' => $this->popBackStack(), 'forms' => $form, 'listCabang' => $listCabang];
 
         return view('master.poin.create', $data);
     }
@@ -171,6 +207,7 @@ class PoinController extends Controller
             'product_description' => 'nullable|string',
             'compan_code' => 'required|array',
             'jumlah' => 'required|array',
+            'image_url' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         try {
@@ -178,22 +215,27 @@ class PoinController extends Controller
 
             $product_name = ucwords(strtolower($validated['product_name']));
             $price = str_replace('.', '', $validated['price']);
-
             $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($validated['product_name']));
 
             $file = $request->file('image_url');
-            $extension = $file->getClientOriginalExtension();
+            if ($file) {
+                $extension = $file->getClientOriginalExtension();
+                $fileName = $cleanProduct . '.' . $extension;
 
-            // Simpan file ke public storage
-            $file->storeAs('public/img/gambar_produk_tukar_poin/' . $cleanProduct . '.' . $extension);
-            // Simpan ke database dengan path relatif
+                $file->storeAs('public/img/gambar_produk_tukar_poin/' . $fileName);
+                $file->move(public_path('img/gambar_produk_tukar_poin/'), $fileName);
+                $imagePath = $fileName;
+            } else {
+                $imagePath = '';
+            }
+
             $id = new Poin();
             $id->product_name = $product_name;
             $id->price = $price;
-            $id->product_description = $validated['product_description'] ?? null;
-            $id->image_url =  $cleanProduct . '.' . $extension;
+            $id->product_description = $validated['product_description'];
+            $id->image_url = $imagePath;
             $id->save();
-            $file->move(public_path('img/gambar_produk_tukar_poin/'), $cleanProduct . '.' . $extension);
+
             foreach ($validated['compan_code'] as $index => $compan_code) {
                 $jumlah = $validated['jumlah'][$index];
                 if (!empty($compan_code) && !empty($jumlah)) {
@@ -206,13 +248,13 @@ class PoinController extends Controller
             }
 
             DB::commit();
-
             return redirect()->back()->with('success', 'Data barang berhasil disimpan.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->withInput()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
+
 
 
 
@@ -229,6 +271,8 @@ class PoinController extends Controller
 
     public function show(Poin $id)
     {
+        $this->pushToBackStack(['/master/poin/show', '/master/poin/storePoind']);
+
 
         $product_id = $id->product_id;
         $productDetail = DB::table('productd')->where('product_id', $product_id)->get();
@@ -236,6 +280,7 @@ class PoinController extends Controller
 
         // Tambahkan properti baru ke objek $id
         $data = [
+            'backUrl' => $this->popBackStack(),
             'header'        => $id,
             'detail'        => $productDetail,
             'company'        => $compan,
@@ -255,6 +300,7 @@ class PoinController extends Controller
 
     public function edit(Poin $id)
     {
+        $this->pushToBackStack(skipPatterns: ['/master/poin/edit', '/master/poin/update']);
         $form = [
             ['label' => 'Nama Produk', 'value' => 'product_name', 'type' => 'string'],
             ['label' => 'Harga Produk (Poin)', 'value' => 'price', 'type' => 'number'],
@@ -264,6 +310,7 @@ class PoinController extends Controller
         $id['primaryKey'] = $id['product_id'];
 
         $data = [
+            'backUrl' => $this->popBackStack(),
             'forms' => $form,
             'data' => $id,
         ];
@@ -296,7 +343,6 @@ class PoinController extends Controller
         try {
             $harga = (int) str_replace('.', '', $request->price);
 
-            // Ambil nama kategori
 
             // Format nama folder & nama file
             $cleanProduct = preg_replace('/[^a-z0-9]/i', '', strtolower($request->product_name));

@@ -50,18 +50,15 @@
                     });
                 }, 3000);
             </script>
+            <a href="{{ $backUrl }}" class="btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <br>
+            <br>
+            <br>
             <br>
             <div class="row mb-2">
-                <script>
-                    setTimeout(() => {
-                        const alerts = document.querySelectorAll('.alert');
-                        alerts.forEach(alert => {
-                            alert.classList.remove('show');
-                            alert.classList.add('fade');
-                            setTimeout(() => alert.remove(), 500);
-                        });
-                    }, 3000);
-                </script>
+
 
 
                 <div class="col-sm-6">
@@ -247,10 +244,10 @@
                                     style='text-align: right' oninput='formatPrice(this)' required
                                     class='form-control jumlah text-primary'>`;
                                         td4.innerHTML = `<button type="button"
-                                    class="btn btn-sm btn-circle btn-outline-danger btn-delete"
-                                    onclick="hapusBaris(this)">
-                                    <i class="fa fa-fw fa-trash"></i>
-                                </button>`;
+                                                    class="btn custom-btn btn-sm btn-circle btn-delete"
+                                                    onclick="hapusBaris(this)">
+                                                    <i class="fa fa-fw fa-trash text-danger"></i>
+                                                </button>`;
 
                                         idrow++;
                                         baris++;
@@ -306,9 +303,9 @@
                                             </td>
                                             <td>
                                                 <button type="button"
-                                                    class="btn btn-sm btn-circle btn-outline-danger btn-delete"
+                                                    class="btn custom-btn btn-sm btn-circle btn-delete"
                                                     onclick="hapusBaris(this)">
-                                                    <i class="fa fa-fw fa-trash"></i>
+                                                    <i class="fa fa-fw fa-trash text-danger"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -317,8 +314,8 @@
 
 
                                 <div class="col-md-2 row">
-                                    <button type="button" onclick="tambah()" class="btn btn-sm btn-success"><i
-                                            class="fas fa-plus fa-sm md-3"></i> </button>
+                                    <button type="button" onclick="tambah()" class="custom-btn btn btn-sm"><i
+                                            class="fas fa-plus fa-sm md-3 text-success"></i> </button>
                                 </div>
                                 <div class="form-group row mt-3">
                                     <div class="col-md-6"></div>

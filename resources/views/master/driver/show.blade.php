@@ -18,15 +18,20 @@
             </div>
             @endif
             <script>
-                setTimeout(() => {
-                    const alerts = document.querySelectorAll('.alert');
-                    alerts.forEach(alert => {
-                        alert.classList.remove('show');
-                        alert.classList.add('fade');
-                        setTimeout(() => alert.remove(), 500);
-                    });
-                }, 3000);
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.classList.remove('show');
+                    alert.classList.add('fade');
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 3000);
             </script>
+            <a href="{{ $backUrl }}" class="btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+
+            <br>
             <br>
 
             <div class="row mb-2">

@@ -2,11 +2,11 @@
 
 
 <style>
-    .card {}
+.card {}
 
-    .form-control:focus {
-        background-color: #E0FFFF !important;
-    }
+.form-control:focus {
+    background-color: #E0FFFF !important;
+}
 </style>
 
 
@@ -38,14 +38,14 @@
             </div>
             @endif
             <script>
-                setTimeout(() => {
-                    const alerts = document.querySelectorAll('.alert');
-                    alerts.forEach(alert => {
-                        alert.classList.remove('show');
-                        alert.classList.add('fade');
-                        setTimeout(() => alert.remove(), 500);
-                    });
-                }, 3000);
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.classList.remove('show');
+                    alert.classList.add('fade');
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 3000);
             </script>
             <a href="{{ $backUrl }}" class="btn">
                 <i class="fas fa-arrow-left"></i>
@@ -55,13 +55,13 @@
             <br>
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">{{$data->product_name}}</h1>
+                    <h1 class="m-0">{{$data->category_name}}</h1>
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{url('master/poin')}}">List Barang</a></li>
-                        <li class="breadcrumb-item active">{{$data->product_name}}</li>
+                        <li class="breadcrumb-item"><a href="{{url('master/kategori')}}">List Kategori</a></li>
+                        <li class="breadcrumb-item active">{{$data->category_name}}</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -75,19 +75,19 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <form action="{{ url('master/poin/update/'.$data->primaryKey) }}" id="entri" method="POST"
-                                enctype="multipart/form-data">
+                            <form action="{{ url('master/kategori/update/'.$data->primaryKey) }}" id="entri"
+                                method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <script>
-                                    function formatPrice(input) {
-                                        // Hapus semua kecuali angka
-                                        let value = input.value.replace(/\D/g, '');
+                                function formatPrice(input) {
+                                    // Hapus semua kecuali angka
+                                    let value = input.value.replace(/\D/g, '');
 
-                                        // Format angka dengan titik ribuan
-                                        let formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                                    // Format angka dengan titik ribuan
+                                    let formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-                                        input.value = formatted;
-                                    }
+                                    input.value = formatted;
+                                }
                                 </script>
                                 @foreach ($forms as $form)
                                 @if($form['type'] == 'selection')
@@ -153,26 +153,26 @@
                                     </div>
                                 </div>
                                 <script>
-                                    const fileInput = document.getElementById("{{$form['value']}}");
-                                    const previewImage = document.getElementById('preview');
+                                const fileInput = document.getElementById("{{$form['value']}}");
+                                const previewImage = document.getElementById('preview');
 
-                                    fileInput.addEventListener('change', function() {
-                                        const file = this.files[0];
-                                        if (file) {
+                                fileInput.addEventListener('change', function() {
+                                    const file = this.files[0];
+                                    if (file) {
 
-                                            // Tampilkan gambar
-                                            const reader = new FileReader();
-                                            reader.onload = function(e) {
-                                                previewImage.src = e.target.result;
-                                                previewImage.style.display = 'block';
-                                            };
-                                            reader.readAsDataURL(file);
-                                        } else {
-                                            fileLabel.textContent = 'Upload Foto';
-                                            previewImage.style.display = 'none';
-                                            previewImage.src = '#';
-                                        }
-                                    });
+                                        // Tampilkan gambar
+                                        const reader = new FileReader();
+                                        reader.onload = function(e) {
+                                            previewImage.src = e.target.result;
+                                            previewImage.style.display = 'block';
+                                        };
+                                        reader.readAsDataURL(file);
+                                    } else {
+                                        fileLabel.textContent = 'Upload Foto';
+                                        previewImage.style.display = 'none';
+                                        previewImage.src = '#';
+                                    }
+                                });
                                 </script>
 
                                 @endif

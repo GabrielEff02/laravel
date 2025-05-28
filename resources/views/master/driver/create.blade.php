@@ -50,201 +50,193 @@
                     });
                 }, 3000);
             </script>
+            <a href="{{ $backUrl }}" class="btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
             <br>
-            <div class="row mb-2">
-                <script>
-                    setTimeout(() => {
-                        const alerts = document.querySelectorAll('.alert');
-                        alerts.forEach(alert => {
-                            alert.classList.remove('show');
-                            alert.classList.add('fade');
-                            setTimeout(() => alert.remove(), 500);
-                        });
-                    }, 3000);
-                </script>
+            <br>
 
+            <div class="col-sm-6">
+                <h1 class="m-0">Tambah Driver</h1>
+            </div>
+            <!-- /.col -->
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{{url('/master/driver')}}">List Driver</a></li>
+                    <li class="breadcrumb-item active">Add</li>
+                </ol>
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
 
-                <div class="col-sm-6">
-                    <h1 class="m-0">Tambah Driver</h1>
-                </div>
-                <!-- /.col -->
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{url('/master/driver')}}">List Driver</a></li>
-                        <li class="breadcrumb-item active">Add</li>
-                    </ol>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <form action={{url('/master/driver/store')}} id="entri" method="POST"
+                            enctype="multipart/form-data">
 
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <form action={{url('/master/driver/store')}} id="entri" method="POST"
-                                enctype="multipart/form-data">
+                            @csrf
 
-                                @csrf
+                            <script>
 
-                                <script>
-
-                                </script>
-                                @foreach ($forms as $form)
-                                @if($form['type'] == 'selection')
-                                <div class="form-group row mt-2">
-                                    <div class="col-md-2">
-                                        <label for="{{ $form['value'] }}"
-                                            class="form-label">{{ $form['label'] }}</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <select name="{{ $form['value'] }}" class="form-control" required>
-                                            <option value="">-- Pilih {{ $form['label'] }} --</option>
-                                            @foreach($form['option'] as $option)
-                                            @php
-                                            $value = is_array($option) ? $option['value'] : $option->value;
-                                            $label = is_array($option) ? $option['label'] : $option->label;
-                                            @endphp
-                                            <option value="{{ $value }}">{{ $label }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                            </script>
+                            @foreach ($forms as $form)
+                            @if($form['type'] == 'selection')
+                            <div class="form-group row mt-2">
+                                <div class="col-md-2">
+                                    <label for="{{ $form['value'] }}" class="form-label">{{ $form['label'] }}</label>
                                 </div>
-                                @elseif($form['type'] == 'string')
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" class="form-control {{$form['value']}}" required
-                                            id="{{$form['value']}}" name="{{$form['value']}}"
-                                            placeholder="Masukkan {{$form['label']}}">
-                                    </div>
-                                </div>
-                                @elseif($form['type'] == 'number')
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" class="form-control {{$form['value']}}" required
-                                            id="{{$form['value']}}" name="{{$form['value']}}"
-                                            placeholder="Masukkan {{$form['label']}}">
-                                    </div>
-                                </div>
-                                @elseif($form['type'] == 'image')
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="file" name="{{$form['value']}}" required
-                                            class="form-control {{$form['value']}}" id='{{$form['value']}}'
-                                            accept=".jpeg, .jpg, .png">
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <img id="preview" src="#" alt="Preview" style="display: none;" />
-                                    </div>
-                                </div>
-                                <script>
-                                    const fileInput = document.getElementById("{{ $form['value'] }}");
-                                    const previewImage = document.getElementById('preview');
-
-                                    fileInput.addEventListener('change', function() {
-                                        const file = this.files[0];
-                                        if (file) {
-
-                                            // Tampilkan gambar
-                                            const reader = new FileReader();
-                                            reader.onload = function(e) {
-                                                previewImage.src = e.target.result;
-                                                previewImage.style.display = 'block';
-                                            };
-                                            reader.readAsDataURL(file);
-                                        } else {
-                                            fileLabel.textContent = 'Upload Foto';
-                                            previewImage.style.display = 'none';
-                                            previewImage.src = '#';
-                                        }
-                                    });
-                                </script>
-                                @elseif($form['type'] == 'password')
-                                <div class="form-group row">
-                                    <div class="col-md-2">
-                                        <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="password" class="form-control {{$form['value']}}" required
-                                            id="{{$form['value']}}" name="{{$form['value']}}"
-                                            placeholder="Masukkan {{$form['label']}}">
-                                        <span class="position-absolute"
-                                            style="top: 50%; right: 25px; transform: translateY(-50%); cursor: driverter;"
-                                            onclick="togglePassword(`{{ $form['value'] }}`, this)">
-                                            <i class="fas fa-eye"></i>
-                                        </span>
-                                    </div>
-                                </div>
-                                @endif
-                                @endforeach
-                                <button type="button" class="btn btn-primary btn-lg" onclick="passwordDefault()">
-                                    Gunakan Password Default
-                                </button>
-                                <script>
-                                    function passwordDefault() {
-                                        @foreach($forms as $form)
-                                        @if($form['type'] === 'password')
-                                        field = document.getElementById("{{ $form['value'] }}");
-                                        if (field) {
-                                            field.value = 'tiaradriver';
-                                        }
-                                        @endif
+                                <div class="col-md-4">
+                                    <select name="{{ $form['value'] }}" class="form-control" required>
+                                        <option value="">-- Pilih {{ $form['label'] }} --</option>
+                                        @foreach($form['option'] as $option)
+                                        @php
+                                        $value = is_array($option) ? $option['value'] : $option->value;
+                                        $label = is_array($option) ? $option['label'] : $option->label;
+                                        @endphp
+                                        <option value="{{ $value }}">{{ $label }}</option>
                                         @endforeach
-                                    }
-                                </script>
-                                <script>
-                                    function togglePassword(id, el) {
-                                        const input = document.getElementById(id);
-                                        const icon = el.querySelector('i');
-
-                                        if (input.type === "password") {
-                                            input.type = "text";
-                                            icon.classList.remove('fa-eye');
-                                            icon.classList.add('fa-eye-slash');
-                                        } else {
-                                            input.type = "password";
-                                            icon.classList.remove('fa-eye-slash');
-                                            icon.classList.add('fa-eye');
-                                        }
-                                    }
-                                </script>
-                                <div class="form-group row mt-3">
-                                    <div class="col-md-6"></div>
-                                    <button type="submit" class="custom-btn btn-lg btn-confirm-submit">
-                                        <i class="fas fa-save me-2"></i> Simpan
-                                    </button>
+                                    </select>
                                 </div>
-                        </div>
+                            </div>
+                            @elseif($form['type'] == 'string')
+                            <div class="form-group row">
+                                <div class="col-md-2">
+                                    <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control {{$form['value']}}" required
+                                        id="{{$form['value']}}" name="{{$form['value']}}"
+                                        placeholder="Masukkan {{$form['label']}}">
+                                </div>
+                            </div>
+                            @elseif($form['type'] == 'number')
+                            <div class="form-group row">
+                                <div class="col-md-2">
+                                    <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control {{$form['value']}}" required
+                                        id="{{$form['value']}}" name="{{$form['value']}}"
+                                        placeholder="Masukkan {{$form['label']}}">
+                                </div>
+                            </div>
+                            @elseif($form['type'] == 'image')
+                            <div class="form-group row">
+                                <div class="col-md-2">
+                                    <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="file" name="{{$form['value']}}" required
+                                        class="form-control {{$form['value']}}" id='{{$form['value']}}'
+                                        accept=".jpeg, .jpg, .png">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-2">
+                                </div>
+                                <div class="col-md-4">
+                                    <img id="preview" src="#" alt="Preview" style="display: none;" />
+                                </div>
+                            </div>
+                            <script>
+                                const fileInput = document.getElementById("{{ $form['value'] }}");
+                                const previewImage = document.getElementById('preview');
+
+                                fileInput.addEventListener('change', function() {
+                                    const file = this.files[0];
+                                    if (file) {
+
+                                        // Tampilkan gambar
+                                        const reader = new FileReader();
+                                        reader.onload = function(e) {
+                                            previewImage.src = e.target.result;
+                                            previewImage.style.display = 'block';
+                                        };
+                                        reader.readAsDataURL(file);
+                                    } else {
+                                        fileLabel.textContent = 'Upload Foto';
+                                        previewImage.style.display = 'none';
+                                        previewImage.src = '#';
+                                    }
+                                });
+                            </script>
+                            @elseif($form['type'] == 'password')
+                            <div class="form-group row">
+                                <div class="col-md-2">
+                                    <label for="{{$form['value']}}" class="form-label">{{$form['label']}}</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="password" class="form-control {{$form['value']}}" required
+                                        id="{{$form['value']}}" name="{{$form['value']}}"
+                                        placeholder="Masukkan {{$form['label']}}">
+                                    <span class="position-absolute"
+                                        style="top: 50%; right: 25px; transform: translateY(-50%); cursor: driverter;"
+                                        onclick="togglePassword(`{{ $form['value'] }}`, this)">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            @endif
+                            @endforeach
+                            <button type="button" class="btn custom-btn btn-lg mr-4" onclick="passwordDefault()">
+                                Gunakan Password Default
+                            </button>
+
+                            <script>
+                                function passwordDefault() {
+                                    @foreach($forms as $form)
+                                    @if($form['type'] === 'password')
+                                    field = document.getElementById("{{ $form['value'] }}");
+                                    if (field) {
+                                        field.value = 'tiaradriver';
+                                    }
+                                    @endif
+                                    @endforeach
+                                }
+                            </script>
+                            <script>
+                                function togglePassword(id, el) {
+                                    const input = document.getElementById(id);
+                                    const icon = el.querySelector('i');
+
+                                    if (input.type === "password") {
+                                        input.type = "text";
+                                        icon.classList.remove('fa-eye');
+                                        icon.classList.add('fa-eye-slash');
+                                    } else {
+                                        input.type = "password";
+                                        icon.classList.remove('fa-eye-slash');
+                                        icon.classList.add('fa-eye');
+                                    }
+                                }
+                            </script>
+                            <div class="form-group row mt-3">
+                                <div class="col-md-6"></div>
+                                <button type="submit" class="custom-btn btn-lg btn-confirm-submit">
+                                    <i class="fas fa-save me-2"></i> Simpan
+                                </button>
+                            </div>
+                    </div>
 
 
-                        {{-- <button type="button"  class="btn btn-success"><i
+                    {{-- <button type="button"  class="btn btn-success"><i
                                             class="fa fa-save"></i> Save</button> --}}
 
-                        </form>
+                    </form>
 
-                    </div>
                 </div>
-                <!-- /.card -->
             </div>
+            <!-- /.card -->
         </div>
-        <!-- /.row -->
-    </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.row -->
+</div><!-- /.container-fluid -->
 </div>
 <!-- /.content -->
 

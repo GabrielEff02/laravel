@@ -1,26 +1,30 @@
 <style>
-    .nav-link.active {
-        background-color: #338ecf !important;
-        color: #ffffff !important;
-        border-left: 4px solid #ffffff;
-        font-weight: bold;
-    }
+.nav-link.active {
+    background-color: #338ecf !important;
+    color: #ffffff !important;
+    border-left: 4px solid #ffffff;
+    font-weight: bold;
+}
 
-    .nav-icon {
-        color: #adb5bd;
-    }
+.nav-icon {
+    color: #adb5bd;
+}
 
-    .nav-link.active .nav-icon {
-        color: #ffffff !important;
-    }
+.nav-link.active .nav-icon {
+    color: #ffffff !important;
+}
 
-    .item {
-        padding-left: 24px;
-    }
+.submenu {
+    padding-left: 24px;
+}
 
-    .nav-item {
-        font-size: 16px;
-    }
+.sub-submenu {
+    padding-left: 48px;
+}
+
+.nav-item {
+    font-size: 16px;
+}
 </style>
 
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -37,8 +41,7 @@
         </div>
 
         @php
-        $masterActive = request()->is('master/brg*') || request()->is('master/poin*') ||
-        request()->is('master/driver*');
+        $masterActive = request()->is('master*');
         $transaksiActive = request()->is('transaksi*');
         $reportActive = request()->is('report*');
         @endphp
@@ -61,67 +64,93 @@
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{url('master/brg')}}"
-                                class="nav-link item {{ request()->is('master/brg*') ? 'active' : '' }}">
+
+                        <li
+                            class="nav-item {{ request()->is('master/satuan*') || request()->is('master/kategori*') || request()->is('master/brg*') ? 'menu-open' : '' }}">
+                            <a href="#"
+                                class="nav-link submenu {{request()->is('master/satuan*') || request()->is('master/kategori*') || request()->is('master/brg*')  ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-box"></i>
-                                <p>Barang</p>
+                                <p>
+                                    Barang
+                                    <i class="right fas fa-angle-left"></i>
+                                </p>
                             </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="{{url('master/brg')}}"
+                                        class="nav-link sub-submenu {{ request()->is('master/brg*') ? 'active' : '' }}">
+                                        <p>Detail Barang</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{url('master/kategori')}}"
+                                        class="nav-link sub-submenu {{ request()->is('master/kategori*') ? 'active' : '' }}">
+                                        <p>Kategori Barang</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{url('master/satuan')}}"
+                                        class="nav-link sub-submenu {{ request()->is('master/satuan*') ? 'active' : '' }}">
+                                        <p>Satuan</p>
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                            <a href="{{url('master/poin')}}"
-                                class="nav-link item {{ request()->is('master/poin*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-gift"></i>
-                                <p>Produk Tukar Poin</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{url('master/driver')}}"
-                                class="nav-link item {{ request()->is('master/driver*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-users"></i>
-                                <p>Driver</p>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
-
-                <li class="nav-item {{ $transaksiActive ? 'menu-open' : '' }}">
-                    <a href="#" class="nav-link {{ $transaksiActive ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-exchange-alt"></i>
-                        <p>
-                            TRANSAKSI
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
+                <li class="nav-item">
+                    <a href="{{url('master/poin')}}"
+                        class="nav-link submenu {{ request()->is('master/poin*') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-gift"></i>
+                        <p>Produk Tukar Poin</p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{ url('transaksi/jual') }}"
-                                class="nav-link item {{ request()->is('transaksi/jual*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-shopping-cart"></i>
-                                <p>Penjualan Barang</p>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
-
-                <li class="nav-item {{ $reportActive ? 'menu-open' : '' }}">
-                    <a href="#" class="nav-link {{ $reportActive ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-chart-line"></i>
-                        <p>
-                            REPORT
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
+                <li class="nav-item">
+                    <a href="{{url('master/driver')}}"
+                        class="nav-link submenu {{ request()->is('master/driver*') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>Driver</p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{ url('report/penjualan') }}"
-                                class="nav-link item {{ request()->is('report/penjualan*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-file-invoice-dollar"></i>
-                                <p>Penjualan</p>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
+            </ul>
+            </li>
+
+            <li class="nav-item {{ $transaksiActive ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ $transaksiActive ? 'active' : '' }}">
+                    <i class="nav-icon fas fa-exchange-alt"></i>
+                    <p>
+                        TRANSAKSI
+                        <i class="right fas fa-angle-left"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                        <a href="{{ url('transaksi/jual') }}"
+                            class="nav-link submenu {{ request()->is('transaksi/jual*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-shopping-cart"></i>
+                            <p>Penjualan Barang</p>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="nav-item {{ $reportActive ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ $reportActive ? 'active' : '' }}">
+                    <i class="nav-icon fas fa-chart-line"></i>
+                    <p>
+                        REPORT
+                        <i class="right fas fa-angle-left"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                        <a href="{{ url('report/penjualan') }}"
+                            class="nav-link submenu {{ request()->is('report/penjualan*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                            <p>Penjualan</p>
+                        </a>
+                    </li>
+                </ul>
+            </li>
             </ul>
         </nav>
     </div>

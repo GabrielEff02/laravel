@@ -40,6 +40,7 @@ class KategoriController extends Controller
         } else {
             $backUrls[] =  $current;
         }
+        session(['back_urls' => $backUrls]);
     }
     private function popBackStack()
     {

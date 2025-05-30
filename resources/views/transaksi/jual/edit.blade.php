@@ -6,49 +6,49 @@
 @endsection
 
 <style>
-.card-body {
-    padding: 5px 10px !important;
-}
+    .card-body {
+        padding: 5px 10px !important;
+    }
 
-.table thead {
-    background-color: #c6e2ff;
-    color: #000;
-}
+    .table thead {
+        background-color: #c6e2ff;
+        color: #000;
+    }
 
-.datatable tbody td {
-    padding: 5px !important;
-}
+    .datatable tbody td {
+        padding: 5px !important;
+    }
 
-.datatable {
-    border-right: solid 2px #000;
-    border-left: solid 2px #000;
-}
+    .datatable {
+        border-right: solid 2px #000;
+        border-left: solid 2px #000;
+    }
 
-.table tbody:nth-child(2) {
-    background-color: #ffe4e1;
-}
+    .table tbody:nth-child(2) {
+        background-color: #ffe4e1;
+    }
 
-.btn-secondary {
-    background-color: #42047e !important;
-}
+    .btn-secondary {
+        background-color: #42047e !important;
+    }
 
-.table-striped tbody tr:nth-of-type(odd) {
-    background-color: #CFCACAFF !important;
-    /* abu muda */
-}
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #CFCACAFF !important;
+        /* abu muda */
+    }
 
-.table-striped tbody tr:nth-of-type(even) {
-    background-color: #ffffff !important;
-    /* putih */
-}
+    .table-striped tbody tr:nth-of-type(even) {
+        background-color: #ffffff !important;
+        /* putih */
+    }
 
-th {
-    font-size: 13px;
-}
+    th {
+        font-size: 13px;
+    }
 
-td {
-    font-size: 13px;
-}
+    td {
+        font-size: 13px;
+    }
 </style>
 
 @section('content')
@@ -78,19 +78,16 @@ td {
             </div>
             @endif
             <script>
-            setTimeout(() => {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(alert => {
-                    alert.classList.remove('show');
-                    alert.classList.add('fade');
-                    setTimeout(() => alert.remove(), 500);
-                });
-            }, 3000);
+                setTimeout(() => {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        alert.classList.remove('show');
+                        alert.classList.add('fade');
+                        setTimeout(() => alert.remove(), 500);
+                    });
+                }, 3000);
             </script>
-            <a href="{{ $this->aksi() }}" class="btn">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            {{ json_encode(session('back_urls', [])) }}
+
 
             <br>
             <br>
@@ -152,47 +149,47 @@ td {
 
 
 <script>
-$('#datatable').on('click', '.clickable-row', function(e) {
-    if (!$(e.target).is('input[type="checkbox"]')) {
-        const id = $(this).data('id');
-        window.location.href = `/transaksi/jual/show/${id}`;
-    }
-});
-
-$('#datatable').on('change', '#checkAll', function() {
-    $('.row-checkbox').prop('checked', this.checked);
-});
-
-
-$(document).ready(function() {
-    $.ajax({
-        url: "{{ route('transaksi.get-jual-ambil') }}",
-        type: "GET",
-        success: function(response) {
-            let thead = '<tr>';
-            response.columns.forEach(col => {
-                thead += `<th style="text-align:center">${col.title}</th>`;
-            });
-            thead += '</tr>';
-            $('#datatable thead').html(thead);
-
-            $('.datatable').DataTable({
-                processing: true,
-                serverSide: true,
-                // scrollX: true,
-
-                autoWidth: true,
-                ajax: "{{ route('transaksi.get-jual-ambil') }}",
-                columns: response.columns,
-                paging: false,
-
-                dom: "<'row'<'col-md-6'><'col-md-6'>>" +
-                    "<'row'<'col-md-2'l><'col-md-6 test_btn m-auto'><'col-md-4'f>>" +
-                    "<'row'<'col-md-12't>><'row'<'col-md-12'ip>>",
-                stateSave: true
-            });
+    $('#datatable').on('click', '.clickable-row', function(e) {
+        if (!$(e.target).is('input[type="checkbox"]')) {
+            const id = $(this).data('id');
+            window.location.href = `/transaksi/jual/show/${id}`;
         }
     });
-});
+
+    $('#datatable').on('change', '#checkAll', function() {
+        $('.row-checkbox').prop('checked', this.checked);
+    });
+
+
+    $(document).ready(function() {
+        $.ajax({
+            url: "{{ route('transaksi.get-jual-ambil') }}",
+            type: "GET",
+            success: function(response) {
+                let thead = '<tr>';
+                response.columns.forEach(col => {
+                    thead += `<th style="text-align:center">${col.title}</th>`;
+                });
+                thead += '</tr>';
+                $('#datatable thead').html(thead);
+
+                $('.datatable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    // scrollX: true,
+
+                    autoWidth: true,
+                    ajax: "{{ route('transaksi.get-jual-ambil') }}",
+                    columns: response.columns,
+                    paging: false,
+
+                    dom: "<'row'<'col-md-6'><'col-md-6'>>" +
+                        "<'row'<'col-md-2'l><'col-md-6 test_btn m-auto'><'col-md-4'f>>" +
+                        "<'row'<'col-md-12't>><'row'<'col-md-12'ip>>",
+                    stateSave: true
+                });
+            }
+        });
+    });
 </script>
 @endsection

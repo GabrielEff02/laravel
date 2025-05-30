@@ -13,11 +13,14 @@ Route::post('/profile/update', 'App\Http\Controllers\Web\ProfileController@updat
 
 Route::prefix('master')->middleware('auth')->group(function () {
     $routes = [
+        'carousel' => \App\Http\Controllers\Web\Master\CarouselController::class,
+        'splash' => \App\Http\Controllers\Web\Master\SplashController::class,
         'brg' => \App\Http\Controllers\Web\Master\BrgController::class,
         'kategori' => \App\Http\Controllers\Web\Master\KategoriController::class,
         'satuan' => \App\Http\Controllers\Web\Master\SatuanController::class,
         'poin' => \App\Http\Controllers\Web\Master\PoinController::class,
         'driver' => \App\Http\Controllers\Web\Master\DriverController::class,
+        'compan' => \App\Http\Controllers\Web\Master\CompanController::class,
     ];
     foreach ($routes as $menu => $controller) {
 
@@ -42,6 +45,7 @@ Route::prefix('master')->middleware('auth')->group(function () {
 Route::prefix('transaksi')->middleware('auth')->group(function () {
     $routes = [
         'jual' => \App\Http\Controllers\Web\Transaksi\JualController::class,
+        'tukar' => \App\Http\Controllers\Web\Transaksi\TukarController::class,
     ];
     foreach ($routes as $menu => $controller) {
 
@@ -49,7 +53,7 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
             Route::get('/', 'index')->name("transaksi.$menu.index");
             Route::get('/create', 'create')->name("transaksi.$menu.create");
             Route::post('/store', 'store')->name("transaksi.$menu.store");
-            if ($menu == 'jual') {
+            if ($menu == 'jual' || $menu = 'tukar') {
                 Route::post(
                     '/show/store' . ucfirst($menu) . 'd',
                     'store' . ucfirst($menu) . 'd'

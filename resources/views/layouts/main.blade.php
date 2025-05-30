@@ -49,7 +49,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
         <!-- Sidebar ( Menu Samping ) -->
         @include('layouts.sidebar')
-        @include('layouts.modal')
+        @include('components.modal')
 
         @yield('content')
         <!-- Control Sidebar -->

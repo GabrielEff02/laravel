@@ -123,35 +123,20 @@ class PoinController extends Controller
 
 
             ->addColumn('action', function ($row) {
-
-                $btnPrivilege = '								
-                    <a class="dropdown-item" href="' . url('master/poin/edit/' . $row->product_id) . '">
-                        <i class="fas fa-pen text-primary"></i>&nbsp&nbsp;&nbsp;; Edit
+                return '
+                <div class="btn-group" role="group" aria-label="Aksi">
+                    <a href="' . url('master/poin/edit/' . $row->product_id) . '" class="btn btn-sm btn-primary mx-2" style="border-radius: 10px;">
+                        <i class="fas fa-pen"></i> Edit
                     </a>
-                    <a class="dropdown-item" href="' . url('master/poin/show/' . $row->product_id) . '">
-                        <i class="fas fa-boxes text-success"></i>&nbsp;&nbsp;&nbsp; Edit Stok
+                    <a href="' . url('master/poin/show/' . $row->product_id) . '" class="btn btn-sm btn-success mx-2" style="border-radius: 10px;">
+                        <i class="fas fa-eye"></i> Lihat
                     </a>
-                    <hr>
-                    <a class="dropdown-item text-danger" onclick="return confirm(&quot;Apakah anda yakin ingin hapus?&quot;)" href="' . url('master/poin/delete/' . $row->product_id) . '">
-                        <i class="fas fa-trash-alt"></i>&nbsp; Hapus
-                    </a>';
-
-                $actionBtn =
-                    '
-                    <div class="dropdown show" style="text-align: center">
-                        <a class="btn btn-secondary dropdown-toggle btn-sm" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-bars"></i>
-                        </a>
-
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                            
-
-                            ' . $btnPrivilege . '
-                        </div>
-                    </div>
-                    ';
-
-                return $actionBtn;
+                    <a href="' . url('master/poin/delete/' . $row->product_id) . '" 
+                    class="btn btn-sm btn-danger mx-2 " style="border-radius: 10px;"
+                    onclick="return confirm(\'Apakah anda yakin ingin hapus?\')">
+                        <i class="fas fa-trash-alt"></i> Hapus
+                    </a>
+                </div>';
             })
             ->rawColumns(['action'])
             ->make(true);

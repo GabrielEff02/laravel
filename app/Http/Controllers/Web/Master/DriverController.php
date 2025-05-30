@@ -119,31 +119,20 @@ class DriverController extends Controller
                 return $row->manager == 1 ? '<i class="fas fa-check"></i>' : '';
             })
             ->addColumn('action', function ($row) {
-
-                $btnPrivilege = '<a class="dropdown-item" href="' . url('master/driver/edit/' . $row->driver_id) . '">
-                        <i class="fas fa-pen text-primary"></i>&nbsp&nbsp;&nbsp;; Edit
+                return '
+                <div class="btn-group" role="group" aria-label="Aksi">
+                    <a href="' . url('master/driver/edit/' . $row->driver_id) . '" class="btn btn-sm btn-primary mx-2" style="border-radius: 10px;">
+                        <i class="fas fa-pen"></i> Edit
                     </a>
-                    <hr>
-                    <a class="dropdown-item text-danger" onclick="return confirm(&quot;Apakah anda yakin ingin hapus?&quot;)" href="' . url('master/driver/delete/' . $row->driver_id) . '">
-                        <i class="fas fa-trash-alt"></i>&nbsp; Hapus
-                    </a>';
-
-                $actionBtn =
-                    '
-                    <div class="dropdown show" style="text-align: center">
-                        <a class="btn btn-secondary dropdown-toggle btn-sm" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-bars"></i>
-                        </a>
-
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                            
-
-                            ' . $btnPrivilege . '
-                        </div>
-                    </div>
-                    ';
-
-                return $actionBtn;
+                    <a href="' . url('master/driver/show/' . $row->driver_id) . '" class="btn btn-sm btn-success mx-2" style="border-radius: 10px;">
+                        <i class="fas fa-eye"></i> Lihat
+                    </a>
+                    <a href="' . url('master/driver/delete/' . $row->driver_id) . '" 
+                    class="btn btn-sm btn-danger mx-2 " style="border-radius: 10px;"
+                    onclick="return confirm(\'Apakah anda yakin ingin hapus?\')">
+                        <i class="fas fa-trash-alt"></i> Hapus
+                    </a>
+                </div>';
             })
             ->rawColumns(['action', 'manager'])
             ->make(true);
@@ -256,6 +245,8 @@ class DriverController extends Controller
             ['label' => 'Status', 'value' => 'status', 'type' => 'selection', 'option' => [['value' => 1, 'label' => 'Aktif'], ['value' => 0, 'label' => 'Tidak Aktif']]],
 
         ];
+
+
         $id['primaryKey'] = $id['driver_id'];
         return view('master.driver.edit', ['data' => $id, 'backUrl' => $this->popBackStack(), 'forms' => $form]);
     }
@@ -314,7 +305,51 @@ class DriverController extends Controller
     public function show(Driver $id)
     {
         $this->pushToBackStack(['/master/driver/show']);
+        $form = [
+            ['label' => 'Username', 'value' => 'username', 'type' => 'string'],
+            ['label' => 'Nama Driver', 'value' => 'driver_name', 'type' => 'string'],
+            ['label' => 'Alamat', 'value' => 'address', 'type' => 'string'],
+            ['label' => 'Nomor Telepon', 'value' => 'phone', 'type' => 'number'],
+            ['label' => 'Email', 'value' => 'email', 'type' => 'string'],
+            ['label' => 'Plat Nomor', 'value' => 'license_number', 'type' => 'string'],
+            ['label' => 'Password', 'value' => 'password', 'type' => 'password'],
+            ['label' => 'Konfirmasi Password', 'value' => 'password_confirmation', 'type' => 'password'],
+            ['label' => 'Status', 'value' => 'status', 'type' => 'selection', 'option' => [['value' => 1, 'label' => 'Aktif'], ['value' => 0, 'label' => 'Tidak Aktif']]],
+            ['label' => 'Status', 'value' => 'status', 'type' => 'selection', 'option' => [['value' => 1, 'label' => 'Aktif'], ['value' => 0, 'label' => 'Tidak Aktif']]],
+            ['label' => 'Lokasi Terbaru', 'value' => 'lokasi', 'type' => 'textarea'],
 
+        ];
+        if (!empty($id['latitude']) && !empty($id['longitude'])) {
+            $lat = $id['latitude'];
+            $lon = $id['longitude'];
+
+            $url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={$lat}&lon={$lon}";
+
+            $opts = [
+                "http" => [
+                    "header" => "User-Agent: PHP"
+                ]
+            ];
+            $context = stream_context_create($opts);
+            $response = file_get_contents($url, false, $context);
+            $data = json_decode($response, true);
+
+            if (isset($data['display_name'])) {
+                $id['lokasi'] = $data['display_name'];
+            } else {
+                $id['lokasi'] = "Gagal mendapatkan lokasi.";
+            }
+        } else {
+            $id['lokasi'] = "Koordinat tidak lengkap.";
+        }
+
+        if (preg_match('/^([A-Za-z]+)(\d+)([A-Za-z]+)$/', $id['license_number'], $matches)) {
+            $huruf_depan = $matches[1];
+            $angka_tengah = $matches[2];
+            $huruf_belakang = $matches[3];
+
+            $id['license_number'] =  $huruf_depan . " " . $angka_tengah . " " . $huruf_belakang;
+        }
         return view('master.driver.show', ['backUrl' => $this->popBackStack(), 'data' => $id, 'forms' => $form]);
     }
     // ganti 22

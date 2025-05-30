@@ -87,7 +87,6 @@ td {
                 });
             }, 3000);
             </script>
-            {{ json_encode(session('back_urls', [])) }}
             <br>
             <div class="row mb-2">
                 <div class="col-sm-12">

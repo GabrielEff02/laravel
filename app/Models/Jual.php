@@ -16,7 +16,7 @@ class Jual extends Model
     protected $fillable = [
         'transaction_id',
         'username',
-        'transaction_date', // ini harus nama kolom asli di tabel
+        'transaction_date',
         'total_amount',
         'address',
         'is_delivery',

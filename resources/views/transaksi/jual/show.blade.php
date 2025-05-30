@@ -1,24 +1,20 @@
 @extends('layouts.main')
 <style>
-.custom {
-    background-color: #F7D8B4 !important;
-    border: 1px solid #ced4da !important;
-}
+    .custom {
+        background-color: #F7D8B4 !important;
+        border: 1px solid #ced4da !important;
+    }
 
-.form-control {
-    font-size: 16px !important;
-    font-weight: bold !important;
-}
+    .form-control {
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
 </style>
 @section('content')
 <div class="content-wrapper">
     <div class="content-header">
         <div class="container-fluid">
-            <a href="{{ $backUrl }}" class="btn">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            {{ json_encode(session('back_urls', [])) }}
-
+            a
             <br>
             <br>
             <div class="row mb-2">

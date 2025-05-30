@@ -141,25 +141,19 @@ class BrgController extends Controller
                 return number_format($row->harga, 0, ',', '.');
             })
             ->addColumn('action', function ($row) {
-                $btnPrivilege = '
-    <a class="dropdown-item" href="' . url('master/brg/edit/' . $row->brg_id) . '">
-        <i class="fas fa-pen text-primary"></i>&nbsp;&nbsp;&nbsp; Edit
-    </a>
-    <a class="dropdown-item" href="' . url('master/brg/show/' . $row->brg_id) . '">
-        <i class="fas fa-boxes text-success"></i>&nbsp;&nbsp;&nbsp; Edit Stok
-    </a>
-    <hr>
-    <a class="dropdown-item text-danger" onclick="return confirm(\'Apakah anda yakin ingin hapus?\')" href="' . url('master/brg/delete/' . $row->brg_id) . '">
-        <i class="fas fa-trash-alt"></i>&nbsp; Hapus
-    </a>';
-
-
                 return '
-                <div class="dropdown show" style="text-align: center">
-                    <a class="btn btn-secondary dropdown-toggle btn-sm" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-bars"></i>
+                <div class="btn-group" role="group" aria-label="Aksi">
+                    <a href="' . url('master/brg/edit/' . $row->brg_id) . '" class="btn btn-sm btn-primary mx-2" style="border-radius: 10px;">
+                        <i class="fas fa-pen"></i> Edit
                     </a>
-                    <div class="dropdown-menu" >' . $btnPrivilege . '</div>
+                    <a href="' . url('master/brg/show/' . $row->brg_id) . '" class="btn btn-sm btn-success mx-2" style="border-radius: 10px;">
+                        <i class="fas fa-eye"></i> Lihat
+                    </a>
+                    <a href="' . url('master/brg/delete/' . $row->brg_id) . '" 
+                    class="btn btn-sm btn-danger mx-2 " style="border-radius: 10px;"
+                    onclick="return confirm(\'Apakah anda yakin ingin hapus?\')">
+                        <i class="fas fa-trash-alt"></i> Hapus
+                    </a>
                 </div>';
             })
             ->rawColumns(['action'])

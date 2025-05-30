@@ -5,63 +5,27 @@ namespace App\Http\Controllers\Web\Transaksi;
 use App\Http\Controllers\Controller;
 // ganti 1
 
-use App\Models\Brg;
-use App\Models\BrgDetail;
 use App\Models\Jual;
 use Illuminate\Http\Request;
 use DataTables;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 
 
 include_once base_path() . "/vendor/simitgroup/phpjasperxml/version/1.1/PHPJasperXML.inc.php";
 
-
-
-
-
 // ganti 2
 class JualController extends Controller
 {
-    private function pushToBackStack(array $skipPatterns = [], $addStack = '')
-    {
-        $backUrls = session('back_urls', []);
-        $prev = url()->previous();
 
-        // Default skip patterns kalau kosong
-        if (empty($skipPatterns)) {
-            $skipPatterns = [];
-        }
-        $backUrls[] = $prev;
-        session(['back_urls' => $backUrls]);
-    }
-    private function popBackStack()
-    {
-        $backUrls = session('back_urls', []);
-        $current = url()->current();
-
-
-        $path = array_pop($backUrls);
-        $backUrls[] =  $path;
-
-        // Ambil URL sebelumnya atau fallback ke route default
-        $previous = array_pop($backUrls);
-        $backUrls[] = $previous;
-
-        session(['back_urls' => $backUrls]);
-
-        return $path;
-    }
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function aksi() {}
     public function index()
     {
-        $this->pushToBackStack();
+
 
         // ganti 3
         return view('transaksi.jual.index');
@@ -355,9 +319,8 @@ class JualController extends Controller
      */
     public function create()
     {
-        $this->pushToBackStack(['transaksi/jual/create', 'transaksi/jual/show'], 'transaksi/jual');
 
-        return view('transaksi.jual.create', ['backUrl' => $this->popBackStack(),]);
+        return view('transaksi.jual.create');
     }
 
     /**
@@ -412,7 +375,6 @@ class JualController extends Controller
 
     public function show(Jual $id)
     {
-        $this->pushToBackStack(['transaksi/jual/show']);
 
         $name = DB::table('users')
             ->where('username', $id->username)
@@ -459,7 +421,7 @@ class JualController extends Controller
             ->get();
 
 
-        $data = ['backUrl' => $this->popBackStack(), 'header' => $id, 'detail' => $detailBarang];
+        $data = ['header' => $id, 'detail' => $detailBarang];
         // return redirect()->back()->with('success', 'Data barang berhasil disimpan.' . json_encode($data));
 
 
@@ -477,9 +439,8 @@ class JualController extends Controller
 
     public function edit()
     {
-        $this->pushToBackStack(['transaksi/jual/edit', 'transaksi/jual/show'], 'transaksi/jual');
 
-        return view('transaksi.jual.edit', ['backUrl' => $this->popBackStack(),]);
+        return view('transaksi.jual.edit',);
     }
 
     /**
@@ -531,25 +492,5 @@ class JualController extends Controller
 
     // ganti 22
 
-    public function destroy(Brg $id)
-    {
-        DB::beginTransaction();
 
-        try {
-            // Hapus gambar jika ada
-            if ($id->url && file_exists(public_path('img/gambar_produk/' . $id->url))) {
-                unlink(public_path('img/gambar_produk/' . $id->url));
-            }
-
-            DB::table('brgd')->where('brg_id', $id->brg_id)->delete();
-
-            $id->delete();
-
-            DB::commit();
-            return redirect()->back()->with('success', 'Data barang dan distribusinya berhasil dihapus.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menghapus barang: ' . $e->getMessage());
-        }
-    }
 }

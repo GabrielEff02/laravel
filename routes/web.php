@@ -43,17 +43,21 @@ Route::prefix('master')->middleware('auth')->group(function () {
 });
 
 Route::prefix('transaksi')->middleware('auth')->group(function () {
+
     $routes = [
         'jual' => \App\Http\Controllers\Web\Transaksi\JualController::class,
         'tukar' => \App\Http\Controllers\Web\Transaksi\TukarController::class,
+        'request' => \App\Http\Controllers\Web\Transaksi\RequestController::class,
     ];
-    foreach ($routes as $menu => $controller) {
 
+
+    foreach ($routes as $menu => $controller) {
         Route::prefix($menu)->middleware('auth')->controller($controller)->group(function () use ($menu) {
             Route::get('/', 'index')->name("transaksi.$menu.index");
             Route::get('/create', 'create')->name("transaksi.$menu.create");
             Route::post('/store', 'store')->name("transaksi.$menu.store");
-            if ($menu == 'jual' || $menu = 'tukar') {
+
+            if ($menu == 'jual' || $menu == 'tukar') {
                 Route::post(
                     '/show/store' . ucfirst($menu) . 'd',
                     'store' . ucfirst($menu) . 'd'
@@ -63,15 +67,18 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
                 Route::post('/update', 'update')->name("transaksi.$menu.update");
                 Route::get('/edit', 'edit')->name("transaksi.$menu.edit");
 
-                Route::get('/get-' . $menu . '-kirim', 'get' . ucwords($menu) . 'Kirim')->name("transaksi.get-" . $menu . '-kirim');
-                Route::get('/get-' . $menu . '-ambil', 'get' . ucwords($menu) . 'Ambil')->name("transaksi.get-" . $menu . '-ambil');
+                Route::get('/get-' . $menu . '-kirim', 'get' . ucfirst($menu) . 'Kirim')->name("transaksi.get-" . $menu . '-kirim');
+                Route::get('/get-' . $menu . '-ambil', 'get' . ucfirst($menu) . 'Ambil')->name("transaksi.get-" . $menu . '-ambil');
             } else {
-                Route::get('/edit/{id}', 'edit')->name("transaksi.$menu.edit");
                 Route::post('/update/{id}', 'update')->name("transaksi.$menu.update");
+                Route::get('/edit/{id}', 'edit')->name("transaksi.$menu.edit");
             }
+
+            // route get-{menu} pakai mapping method khusus
+            Route::get('/get-' . $menu, 'get' . ucfirst($menu))->name("transaksi.get-" . $menu);
             Route::get('/delete/{id}', 'destroy')->name("transaksi.$menu.delete");
-            Route::get('/get-' . $menu, 'get' . ucwords($menu))->name("transaksi.get-" . $menu);
         });
     }
 });
+
 require __DIR__ . '/auth.php';

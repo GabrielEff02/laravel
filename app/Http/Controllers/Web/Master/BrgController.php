@@ -157,6 +157,7 @@ class BrgController extends Controller
                 </div>';
             })
             ->rawColumns(['action'])
+            ->rawColumns(['action'])
             ->make(true);
     }
 
